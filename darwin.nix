@@ -17,6 +17,9 @@ in
   # 1Password CLI(アプリ連携のため /usr/local/bin/op に置かれる)
   programs._1password.enable = true;
 
+  programs.fish.enable = true;
+  environment.shells = [ pkgs.fish ];
+
   homebrew = {
     enable = true;
     onActivation = {
