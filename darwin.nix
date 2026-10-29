@@ -14,7 +14,9 @@
       cleanup = "none";          # 慣れたら "zap"(リストにないアプリを削除)
     };
     brews = [ ];
-    casks = [ ];
+    casks = [
+      "macskk"
+    ];
     masApps = { };               # 例: "Xcode" = 497799835;
   };
 
