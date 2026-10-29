@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   user = config.system.primaryUser;
   home = "/Users/${user}";
@@ -10,6 +10,12 @@ in
   system.stateVersion = 6;
 
   environment.systemPackages = with pkgs; [ git mise ];
+
+  nixpkgs.config.allowUnfreePredicate = pkg:
+    builtins.elem (lib.getName pkg) [ "1password-cli" ];
+
+  # 1Password CLI(アプリ連携のため /usr/local/bin/op に置かれる)
+  programs._1password.enable = true;
 
   homebrew = {
     enable = true;
