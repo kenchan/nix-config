@@ -2,6 +2,15 @@
 let
   user = config.system.primaryUser;
   home = "/Users/${user}";
+
+  # macSKK で使う辞書(encoding: 3 = EUC-JP, 4 = UTF-8)
+  skkDicts = with pkgs.skkDictionaries; [
+    { pkg = l;       file = "SKK-JISYO.L";       encoding = 3; }
+    { pkg = jinmei;  file = "SKK-JISYO.jinmei";  encoding = 3; }
+    { pkg = geo;     file = "SKK-JISYO.geo";     encoding = 3; }
+    { pkg = station; file = "SKK-JISYO.station"; encoding = 3; }
+    { pkg = emoji;   file = "SKK-JISYO.emoji";   encoding = 4; }
+  ];
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -66,14 +75,14 @@ in
       # macSKK: 変換候補の横にシステム辞書の注釈を出さない
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;
-        # 有効にする辞書(ファイルは下の postActivation で配置。encoding 3 = EUC-JP)
-        dictionaries = map (filename: {
-          inherit filename;
+        # 有効にする辞書(ファイルは下の postActivation で配置)
+        dictionaries = map (d: {
+          filename = d.file;
+          inherit (d) encoding;
           enabled = true;
-          encoding = 3;
           saveToUserDict = true;
           type = "traditional";
-        }) [ "SKK-JISYO.L" "SKK-JISYO.jinmei" ];
+        }) skkDicts;
       };
     };
   };
@@ -85,14 +94,17 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
-  # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)
   system.activationScripts.postActivation.text = ''
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
+  '';
 
+  # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)。
+  # 起動中の macSKK は新しいファイルを無効として登録するので、dictionaries の書き込みより前に置く
+  system.activationScripts.preActivation.text = ''
     dir="${home}/Library/Containers/net.mtgto.inputmethod.macSKK/Data/Documents/Dictionaries"
     if [ -d "$dir" ]; then
-      for f in ${pkgs.skkDictionaries.l}/share/skk/SKK-JISYO.L ${pkgs.skkDictionaries.jinmei}/share/skk/SKK-JISYO.jinmei; do
+      for f in ${lib.concatMapStringsSep " " (d: "${d.pkg}/share/skk/${d.file}") skkDicts}; do
         cmp -s "$f" "$dir/$(basename "$f")" || install -m 0644 -o ${user} -g staff "$f" "$dir/"
       done
     else
