@@ -44,6 +44,13 @@ in
       NSAutomaticPeriodSubstitutionEnabled = false;
     };
     trackpad.Clicking = true;          # タップでクリック
+    CustomUserPreferences = {
+      # ネットワークドライブと USB に .DS_Store を作らない
+      "com.apple.desktopservices" = {
+        DSDontWriteNetworkStores = true;
+        DSDontWriteUSBStores = true;
+      };
+    };
   };
 
   system.keyboard = {
