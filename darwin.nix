@@ -44,6 +44,10 @@ in
       NSAutomaticPeriodSubstitutionEnabled = false;
     };
     trackpad.Clicking = true;          # タップでクリック
+    screencapture = {
+      location = "${home}/Pictures/Screenshots";
+      disable-shadow = true;
+    };
     CustomUserPreferences = {
       # ネットワークドライブと USB に .DS_Store を作らない
       "com.apple.desktopservices" = {
@@ -62,6 +66,9 @@ in
 
   # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)
   system.activationScripts.postActivation.text = ''
+    # スクリーンショットの保存先
+    install -d -o ${user} -g staff ${home}/Pictures/Screenshots
+
     dir="${home}/Library/Containers/net.mtgto.inputmethod.macSKK/Data/Documents/Dictionaries"
     if [ -d "$dir" ]; then
       for f in ${pkgs.skkDictionaries.l}/share/skk/SKK-JISYO.L ${pkgs.skkDictionaries.jinmei}/share/skk/SKK-JISYO.jinmei; do
