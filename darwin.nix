@@ -40,6 +40,11 @@ in
     trackpad.Clicking = true;          # タップでクリック
   };
 
+  system.keyboard = {
+    enableKeyMapping = true;
+    remapCapsLockToControl = true;
+  };
+
   security.pam.services.sudo_local.touchIdAuth = true;
 
   # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)
