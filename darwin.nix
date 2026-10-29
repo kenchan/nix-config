@@ -36,6 +36,12 @@ in
       KeyRepeat = 2;
       InitialKeyRepeat = 15;
       ApplePressAndHoldEnabled = false;
+      # 自動修正・自動置換をオフ
+      NSAutomaticSpellingCorrectionEnabled = false;
+      NSAutomaticCapitalizationEnabled = false;
+      NSAutomaticQuoteSubstitutionEnabled = false;
+      NSAutomaticDashSubstitutionEnabled = false;
+      NSAutomaticPeriodSubstitutionEnabled = false;
     };
     trackpad.Clicking = true;          # タップでクリック
   };
