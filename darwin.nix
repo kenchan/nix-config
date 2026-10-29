@@ -63,6 +63,10 @@ in
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
       };
+      # macSKK: 変換候補の横にシステム辞書の注釈を出さない
+      "net.mtgto.inputmethod.macSKK" = {
+        showAnnotation = false;
+      };
     };
   };
 
