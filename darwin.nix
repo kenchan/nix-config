@@ -66,6 +66,14 @@ in
       # macSKK: 変換候補の横にシステム辞書の注釈を出さない
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;
+        # 有効にする辞書(ファイルは下の postActivation で配置。encoding 3 = EUC-JP)
+        dictionaries = map (filename: {
+          inherit filename;
+          enabled = true;
+          encoding = 3;
+          saveToUserDict = true;
+          type = "traditional";
+        }) [ "SKK-JISYO.L" "SKK-JISYO.jinmei" ];
       };
     };
   };
