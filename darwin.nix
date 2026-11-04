@@ -18,7 +18,35 @@ in
   system.primaryUser = "kenchan";
   system.stateVersion = 6;
 
-  environment.systemPackages = with pkgs; [ git mise ];
+  environment.systemPackages = with pkgs; [
+    git
+    mise
+
+    # wsl-setup で入れていた CLI(言語やランタイムは mise で管理)
+    bat
+    consul-template
+    direnv
+    doggo
+    duckdb
+    fd
+    ffmpeg
+    fzf
+    gnupg
+    imagemagick
+    jpegoptim
+    kubectl
+    kubectx
+    kubeseal
+    lsd
+    neovim
+    nkf
+    pngquant
+    poppler-utils
+    ripgrep
+    socat
+    starship
+    wget
+  ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "1password-cli" ];
