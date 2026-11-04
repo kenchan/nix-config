@@ -133,7 +133,10 @@ in
     remapCapsLockToControl = true;
   };
 
-  security.pam.services.sudo_local.touchIdAuth = true;
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;                   # herdr-core などのセッション内でも Touch ID を使う
+  };
 
   # ログイン時に Amethyst を起動
   launchd.user.agents.amethyst.serviceConfig = {
