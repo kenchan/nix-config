@@ -74,6 +74,7 @@ in
     brews = [ ];
     casks = [
       "amethyst"
+      "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
       "herdr-app"
       "macskk"
     ];
