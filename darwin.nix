@@ -85,6 +85,7 @@ in
     brews = [ ];
     casks = [
       "amethyst"
+      "chatgpt"
       "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
       "herdr-app"
       "macskk"
