@@ -11,6 +11,13 @@ let
     { pkg = station; file = "SKK-JISYO.station"; encoding = 3; }
     { pkg = emoji;   file = "SKK-JISYO.emoji";   encoding = 4; }
   ];
+
+  # macSKK のローマ字かな変換ルール(デフォルトとの差分)
+  skkKanaRule = pkgs.writeText "kana-rule.conf" ''
+    #!use-default
+    !,！
+    ?,？
+  '';
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -116,6 +123,7 @@ in
       # macSKK: 変換候補の横にシステム辞書の注釈を出さない
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;
+        kanaRule = "kana-rule.conf";   # 下の preActivation で配置するルールを使う
         # 有効にする辞書(ファイルは下の postActivation で配置)
         dictionaries = map (d: {
           filename = d.file;
@@ -159,6 +167,11 @@ in
       done
     else
       echo "macSKK の辞書フォルダがないのでスキップ(macSKK を一度起動してください)" >&2
+    fi
+
+    settings="${home}/Library/Containers/net.mtgto.inputmethod.macSKK/Data/Documents/Settings"
+    if [ -d "$settings" ]; then
+      cmp -s ${skkKanaRule} "$settings/kana-rule.conf" || install -m 0644 -o ${user} -g staff ${skkKanaRule} "$settings/kana-rule.conf"
     fi
   '';
 }
