@@ -74,7 +74,13 @@ in
   };
 
   system.defaults = {
-    dock = { autohide = true; show-recents = false; tilesize = 48; };
+    dock = {
+      autohide = true;
+      show-recents = false;
+      tilesize = 48;
+      mru-spaces = false;              # Spaces の並びを自動で入れ替えない
+    };
+    spaces.spans-displays = false;     # ディスプレイごとに個別の操作スペース(Amethyst 向け)
     finder = {
       AppleShowAllExtensions = true;
       ShowPathbar = true;
