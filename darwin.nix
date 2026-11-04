@@ -38,6 +38,7 @@ in
     };
     brews = [ ];
     casks = [
+      "herdr-app"
       "macskk"
     ];
     masApps = { };               # 例: "Xcode" = 497799835;
