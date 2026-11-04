@@ -74,6 +74,11 @@ in
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
       };
+      # 再ログイン時に前回のアプリやウインドウを開き直さない
+      "com.apple.loginwindow" = {
+        TALLogoutSavesState = false;
+        LoginwindowLaunchesRelaunchApps = false;
+      };
       # macSKK: 変換候補の横にシステム辞書の注釈を出さない
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;
