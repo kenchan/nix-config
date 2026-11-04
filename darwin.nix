@@ -96,6 +96,12 @@ in
 
   security.pam.services.sudo_local.touchIdAuth = true;
 
+  # ログイン時に Amethyst を起動
+  launchd.user.agents.amethyst.serviceConfig = {
+    ProgramArguments = [ "/usr/bin/open" "-a" "Amethyst" ];
+    RunAtLoad = true;
+  };
+
   system.activationScripts.postActivation.text = ''
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
