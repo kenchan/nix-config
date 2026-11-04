@@ -38,6 +38,7 @@ in
     };
     brews = [ ];
     casks = [
+      "amethyst"
       "herdr-app"
       "macskk"
     ];
