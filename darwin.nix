@@ -87,6 +87,7 @@ in
       "amethyst"
       "chatgpt"
       "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
+      "codex-app"                      # Codex のデスクトップアプリ
       "herdr-app"
       "macskk"
     ];
