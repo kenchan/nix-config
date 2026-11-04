@@ -53,7 +53,16 @@ in
     socat
     starship
     wget
+
+    # Docker: Lima の VM で rootless の dockerd を動かし、Mac 側は CLI だけ
+    lima
+    docker-client
+    docker-compose
+    docker-buildx
   ];
+
+  # docker compose / docker buildx をプラグインとして見つけられるようにする
+  environment.pathsToLink = [ "/libexec/docker" ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "1password-cli" ];
@@ -155,9 +164,21 @@ in
     RunAtLoad = true;
   };
 
+  # ログイン時に Docker 用の Lima VM を起動(作成手順は README の「Docker」)
+  launchd.user.agents.lima-docker.serviceConfig = {
+    ProgramArguments = [ "${pkgs.lima}/bin/limactl" "start" "--tty=false" "docker" ];
+    RunAtLoad = true;
+    StandardOutPath = "/tmp/lima-docker.log";
+    StandardErrorPath = "/tmp/lima-docker.log";
+  };
+
   system.activationScripts.postActivation.text = ''
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
+
+    # docker CLI が標準で探す場所に Nix のプラグインをつなぐ
+    install -d /usr/local/lib/docker
+    ln -sfn /run/current-system/sw/libexec/docker/cli-plugins /usr/local/lib/docker/cli-plugins
 
     # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)
     sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off
