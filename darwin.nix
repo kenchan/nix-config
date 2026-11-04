@@ -61,6 +61,8 @@ in
   # 1Password CLI(アプリ連携のため /usr/local/bin/op に置かれる)
   programs._1password.enable = true;
 
+  environment.variables.HOMEBREW_NO_ANALYTICS = "1";
+
   programs.fish.enable = true;
   environment.shells = [ pkgs.fish ];
 
@@ -156,6 +158,9 @@ in
   system.activationScripts.postActivation.text = ''
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
+
+    # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)
+    sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off
   '';
 
   # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)。
