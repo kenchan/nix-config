@@ -90,6 +90,7 @@ in
       "codex-app"                      # Codex のデスクトップアプリ
       "herdr-app"
       "macskk"
+      "notion"
     ];
     masApps = { };               # 例: "Xcode" = 497799835;
   };
