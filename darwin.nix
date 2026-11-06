@@ -76,6 +76,12 @@ in
   programs.fish.enable = true;
   environment.shells = [ pkgs.fish ];
 
+  # ログインシェルは zsh のまま。zsh でも mise のツール(node など)を使えるようにする
+  # (fish 側の mise activate は dotfiles の config.fish でやっている)
+  programs.zsh.interactiveShellInit = ''
+    eval "$(${pkgs.mise}/bin/mise activate zsh)"
+  '';
+
   homebrew = {
     enable = true;
     onActivation = {
