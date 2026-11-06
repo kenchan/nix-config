@@ -85,8 +85,9 @@ in
   homebrew = {
     enable = true;
     onActivation = {
-      autoUpdate = true;
-      upgrade = true;
+      # switch は反映だけにして、アプリの更新は `brew update && brew upgrade` で別にやる
+      autoUpdate = false;
+      upgrade = false;
       cleanup = "none";          # 慣れたら "zap"(リストにないアプリを削除)
     };
     brews = [ ];

@@ -6,15 +6,19 @@ Mac の macOS 設定とアプリを管理する nix-darwin の flake。
 
 ## 適用
 
+設定を変えたら反映する(何も更新しない。cask の追加・削除だけ Homebrew に反映される):
+
 ```sh
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
 ```
 
-更新(nixpkgs / nix-darwin / SKK 辞書):
+全部を最新にする:
 
 ```sh
-nix flake update --flake ~/.config/nix-darwin
+nix flake update --flake ~/.config/nix-darwin                   # nixpkgs / nix-darwin / SKK 辞書
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
+brew update && brew upgrade                                     # Homebrew の cask
+mise upgrade                                                    # mise のツール
 ```
 
 古い世代の掃除(Determinate Nix なので `nix.gc` は使えない):
