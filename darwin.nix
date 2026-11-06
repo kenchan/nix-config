@@ -27,6 +27,7 @@ in
 
   environment.systemPackages = with pkgs; [
     git
+    gh                                 # dotfiles の git-credential-gh が使う。fish 以外(GUI や Claude Code)からも見えるように
     mise
 
     # wsl-setup で入れていた CLI(言語やランタイムは mise で管理)

@@ -51,16 +51,16 @@ macOS の入力ソースは `defaults` では安定して管理できないの�
 
 macSKK を一度起動してから `darwin-rebuild switch` すると辞書が配置・有効化される。
 
-### git(`~/.config/git/config.local`)
-dotfiles の `config/git/config` は WSL 向けなので、Mac ではこのファイルで上書きする。
+### git / gh
+署名(1Password)と HTTPS の認証(`git-credential-gh`)は dotfiles 側で Mac にも対応しているので、`~/.config/git/config.local` は空でよい。
+gh(Nix で入れている)に各アカウントでログインする:
 
-```gitconfig
-[credential]
-	helper =
-	helper = osxkeychain
-[gpg "ssh"]
-	program = /Applications/1Password.app/Contents/MacOS/op-ssh-sign
+```sh
+gh auth login --hostname github.com --git-protocol https --web     # アカウントごとに
 ```
+
+- 「Authenticate Git with your GitHub credentials?」は **n**(`Y` だと dotfiles の `~/.config/git/config` に書き込まれる)
+- 同じホストに複数のアカウントがあるときは、リポジトリで `git config credential.username <アカウント>` を設定して選ぶ
 
 ### 1Password
 - 「設定」→「開発者」で **1Password CLI と連携** をオン(`op vault list` で Touch ID が出れば OK)
