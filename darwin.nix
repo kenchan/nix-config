@@ -174,6 +174,15 @@ in
     remapCapsLockToControl = true;
   };
 
+  # system.keyboard は switch のときに hidutil を実行するだけで、再起動すると消えるので、ログインのたびにかけ直す
+  launchd.user.agents.keyboard-remap.serviceConfig = {
+    ProgramArguments = [
+      "/usr/bin/hidutil" "property" "--set"
+      (builtins.toJSON { UserKeyMapping = config.system.keyboard.userKeyMapping; })
+    ];
+    RunAtLoad = true;
+  };
+
   security.pam.services.sudo_local = {
     touchIdAuth = true;
     reattach = true;                   # herdr-core などのセッション内でも Touch ID を使う
