@@ -145,7 +145,7 @@ in
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;
         kanaRule = "kana-rule.conf";   # 下の preActivation で配置するルールを使う
-        # 有効にする辞書(ファイルは下の postActivation で配置)
+        # 有効にする辞書(ファイルは下の preActivation で配置)
         dictionaries = map (d: {
           filename = d.file;
           inherit (d) encoding;
