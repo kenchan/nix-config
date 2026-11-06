@@ -92,9 +92,8 @@ in
     brews = [ ];
     casks = [
       "amethyst"
-      "chatgpt"
+      "chatgpt"                        # Codex のデスクトップアプリも統合済み(2026-07)
       "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
-      "codex-app"                      # Codex のデスクトップアプリ
       "herdr-app"
       "macskk"
       "notion"
