@@ -18,6 +18,17 @@ let
     !,！
     ?,？
   '';
+
+  # Docker 用の Lima VM(rootless の template:docker、ホームは書き込み可でマウント)
+  limactl = "${pkgs.lima}/bin/limactl";
+  docker = "${pkgs.docker-client}/bin/docker";
+  limaDockerExists = "${limactl} list -q 2>/dev/null | /usr/bin/grep -qx docker";
+
+  # ログイン時に VM を起動する。VM が無いときは何もしない(作るのは switch 時の postActivation)
+  limaDockerStart = pkgs.writeShellScript "lima-docker-start" ''
+    ${limaDockerExists} || exit 0
+    exec ${limactl} start --tty=false docker
+  '';
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -174,9 +185,9 @@ in
     RunAtLoad = true;
   };
 
-  # ログイン時に Docker 用の Lima VM を起動(作成手順は README の「Docker」)
+  # ログイン時に Docker 用の Lima VM を起動
   launchd.user.agents.lima-docker.serviceConfig = {
-    ProgramArguments = [ "${pkgs.lima}/bin/limactl" "start" "--tty=false" "docker" ];
+    ProgramArguments = [ "${limaDockerStart}" ];
     RunAtLoad = true;
     StandardOutPath = "/tmp/lima-docker.log";
     StandardErrorPath = "/tmp/lima-docker.log";
@@ -189,6 +200,21 @@ in
     # docker CLI が標準で探す場所に Nix のプラグインをつなぐ
     install -d /usr/local/lib/docker
     ln -sfn /run/current-system/sw/libexec/docker/cli-plugins /usr/local/lib/docker/cli-plugins
+
+    # Docker 用の Lima VM と docker context を無ければ作る。
+    # VM は GUI セッションのユーザーとして作る(Virtualization.framework を使うため)。
+    # 初回はイメージのダウンロードで数分かかる。失敗しても switch は止めない
+    as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
+    if ! as_user sh -c '${limaDockerExists}'; then
+      echo "Docker 用の Lima VM を作成します(初回はダウンロードに数分かかります)..." >&2
+      as_user ${limactl} start --name=docker --mount-writable --tty=false template:docker \
+        || echo "警告: Lima VM の作成に失敗しました。README の「Docker」を見て手で作ってください" >&2
+    fi
+    if ! as_user ${docker} context inspect lima-docker >/dev/null 2>&1; then
+      as_user ${docker} context create lima-docker --docker "host=unix://${home}/.lima/docker/sock/docker.sock" >/dev/null \
+        && as_user ${docker} context use lima-docker >/dev/null \
+        || echo "警告: docker context lima-docker を作れませんでした" >&2
+    fi
 
     # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)
     sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off

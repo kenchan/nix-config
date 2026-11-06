@@ -85,7 +85,10 @@ gh auth login --hostname github.com --git-protocol https --web     # アカウ�
 
 ### Docker(Lima の rootless Docker)
 Mac 側は Nix の docker CLI(compose / buildx 付き)だけで、dockerd は Lima の VM で rootless で動かす。
-VM はログイン時に `launchd.user.agents.lima-docker` が起動する。初回だけ VM と context を作る:
+`darwin-rebuild switch` のときに、VM(`docker`)と docker context(`lima-docker`)が無ければ作る(初回はイメージのダウンロードで数分かかる)。
+VM はログイン時に `launchd.user.agents.lima-docker` が起動する(VM が無いときは何もしない)。
+
+自動で作れなかったときは手で作る:
 
 ```sh
 limactl start --name=docker --mount-writable --tty=false template:docker
@@ -95,6 +98,7 @@ docker run --rm hello-world
 ```
 
 - `--mount-writable` がないとホームが読み取り専用でマウントされ、bind mount に書けない
+- Nix が面倒を見るのは「無ければ作る」まで。VM の設定(CPU やメモリなど)を変えたら作り直す
 - 既存の VM を変えるときは `limactl stop docker && limactl edit --mount-writable docker && limactl start docker`
 - VM の起動ログは `/tmp/lima-docker.log`
 
