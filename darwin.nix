@@ -100,6 +100,8 @@ in
       autoUpdate = false;
       upgrade = false;
       cleanup = "none";          # 慣れたら "zap"(リストにないアプリを削除)
+      # sudo で動く switch には environment.variables が渡らないので、ここでも指定する
+      extraEnv.HOMEBREW_NO_ANALYTICS = "1";
     };
     brews = [ ];
     casks = [
@@ -225,8 +227,11 @@ in
         || echo "警告: docker context lima-docker を作れませんでした" >&2
     fi
 
-    # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)
-    sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off
+    # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)。
+    # brew が無いときに switch 全体を止めないよう、あるときだけ実行する
+    if [ -x /opt/homebrew/bin/brew ]; then
+      sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off
+    fi
   '';
 
   # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)。
