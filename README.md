@@ -1,19 +1,20 @@
 # nix-darwin
 
-この Mac の macOS 設定とアプリを管理する nix-darwin の flake。
+Mac の macOS 設定とアプリを管理する nix-darwin の flake。
+設定の名前はホスト名ではなく `default` に固定しているので、適用時は `#default` を付ける(付けないとホスト名で探して失敗する)。
 言語ランタイムは mise、シェルやエディタの設定は [dotfiles](https://github.com/kenchan/dotfiles) で管理する。
 
 ## 適用
 
 ```sh
-sudo darwin-rebuild switch --flake ~/.config/nix-darwin
+sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
 ```
 
 更新(nixpkgs / nix-darwin / SKK 辞書):
 
 ```sh
 nix flake update --flake ~/.config/nix-darwin
-sudo darwin-rebuild switch --flake ~/.config/nix-darwin
+sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
 ```
 
 古い世代の掃除(Determinate Nix なので `nix.gc` は使えない):
@@ -27,8 +28,8 @@ sudo nix-collect-garbage --delete-older-than 30d
 1. `xcode-select --install`
 2. Nix(Determinate):`curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
 3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-4. このリポジトリを `~/.config/nix-darwin` に置く。ホスト名が違う場合は `flake.nix` の `darwinConfigurations` の名前を変える
-5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin`
+4. このリポジトリを `~/.config/nix-darwin` に置く
+5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin#default`
 6. dotfiles:
    ```sh
    git clone https://github.com/kenchan/dotfiles.git ~/src/github.com/kenchan/dotfiles

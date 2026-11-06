@@ -8,6 +8,7 @@
   };
 
   outputs = { nixpkgs, nix-darwin, ... }: {
+    # ホスト名に依存しないよう名前を固定する。適用時は `--flake ~/.config/nix-darwin#default`
     darwinConfigurations.default = nix-darwin.lib.darwinSystem {
       modules = [ ./darwin.nix ];
     };
