@@ -27,10 +27,11 @@ brew update && brew upgrade                                     # Homebrew の c
 mise upgrade                                                    # mise のツール
 ```
 
-古い世代の掃除(Determinate Nix なので `nix.gc` は使えない):
+古い世代の掃除(Determinate Nix なので `nix.gc` は使えない)。1 週間より古い世代と、使われなくなったパッケージを消す
+(今の世代は古くても消えない):
 
 ```sh
-sudo nix-collect-garbage --delete-older-than 30d
+sudo nix-collect-garbage --delete-older-than 7d
 ```
 
 ## 新しい Mac のセットアップ
