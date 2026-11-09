@@ -40,6 +40,9 @@ sudo nix-collect-garbage --delete-older-than 30d
 3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 4. このリポジトリを `~/.config/nix-darwin` に置く
 5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin#default`
+   - ネットワークにつながり、画面にログインした状態で実行する(Docker 用の Lima VM のイメージをダウンロードするので数分かかる)
+   - 終わったら、もう一度 `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default` する。
+     macSKK の辞書を置くフォルダは macSKK が初めて起動したとき(1 回目の switch の最後)にできるので、辞書は 2 回目で置かれる
 6. 新しいターミナルを開いて(Nix で入れたコマンドに PATH が通る)、dotfiles:
    ```sh
    git clone https://github.com/kenchan/dotfiles.git ~/src/github.com/kenchan/dotfiles
