@@ -187,6 +187,17 @@ in
           saveToUserDict = true;
           type = "traditional";
         }) skkDicts;
+        # No date conversion: by default きょう, あした, today, ... convert to dates and hide the dictionary words.
+        # The formats are macSKK's defaults, kept so that adding a reading in Settings turns it back on.
+        dateConversions = {
+          yomis = [ ];
+          conversions = [
+            { format = "yyyy/MM/dd"; locale = "en_US"; calendar = "gregorian"; }
+            { format = "yyyy-MM-dd"; locale = "en_US"; calendar = "gregorian"; }
+            { format = "yyyy年M月d日"; locale = "en_US"; calendar = "gregorian"; }
+            { format = "Gy年M月d日"; locale = "ja_JP"; calendar = "japanese"; }
+          ];
+        };
       };
     };
   };
