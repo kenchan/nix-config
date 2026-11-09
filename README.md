@@ -80,6 +80,9 @@ gh auth login --hostname github.com --git-protocol https --web     # アカウ�
 - 同じホストに複数のアカウントがあるときは、リポジトリで `git config credential.username <アカウント>` を設定して選ぶ
 
 ### 1Password
+- アプリは Nix / Homebrew では入れない。会社の Mac は MDM で入っていることがあり、cask にすると
+  「もうアプリがある」で Homebrew が失敗して switch 全体が止まるため。入っていなければ公式サイトから入れる
+  (CLI の `op` は Nix の `programs._1password` で入る)
 - 「設定」→「開発者」で **1Password CLI と連携** をオン(`op vault list` で Touch ID が出れば OK)
 - 同じ画面で **SSH エージェントを使用** をオン
 - `~/.ssh/config`:
