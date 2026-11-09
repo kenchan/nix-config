@@ -88,9 +88,10 @@ Mac 側は Nix の docker CLI(compose / buildx 付き)だけで、dockerd は Li
 `darwin-rebuild switch` のときに、VM(`docker`)と docker context(`lima-docker`)が無ければ作る(初回はイメージのダウンロードで数分かかる)。
 VM はログイン時に `launchd.user.agents.lima-docker` が起動する(VM が無いときは何もしない)。
 
-自動で作れなかったときは手で作る:
+自動で作れなかったときは手で作る(作成が途中で失敗した VM が残っていると次の switch でも作り直されないので、先に消す):
 
 ```sh
+limactl delete --force docker
 limactl start --name=docker --mount-writable --tty=false template:docker
 docker context create lima-docker --docker "host=unix://$HOME/.lima/docker/sock/docker.sock"
 docker context use lima-docker
