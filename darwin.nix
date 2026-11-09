@@ -30,13 +30,22 @@ let
     exec ${limactl} start --tty=false docker
   '';
 
-  # 標準のタイル機能で半分に寄せるキー(symbolichotkeys の 240〜243)。既定の Fn+Control+矢印は Advantage360 では
-  # Fn がファームウェアに取られて押せないので Control+Option+矢印にする。
-  # 修飾キーの値は Control(0x40000) + Option(0x80000) + 矢印キーに付く Fn フラグ(0x800000)
-  tileHotKeys = { "240" = 123; "241" = 124; "242" = 126; "243" = 125; };   # ← → ↑ ↓ のキーコード
-  tileHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: keyCode: ''
+  # 標準のタイル機能のキー(symbolichotkeys)。既定の Fn+Control+矢印などは Advantage360 では
+  # Fn がファームウェアに取られて押せないので Control+Option にする。
+  # parameters は [文字コード(矢印は 65535), キーコード, 修飾キー]。修飾キーは Control(0x40000) + Option(0x80000)、
+  # 矢印キーにはさらに Fn フラグ(0x800000)が付く
+  ctrlOpt = 786432;
+  ctrlOptArrow = 9175040;
+  tileHotKeys = {
+    "240" = [ 65535 123 ctrlOptArrow ];   # 左半分 ←
+    "241" = [ 65535 124 ctrlOptArrow ];   # 右半分 →
+    "242" = [ 65535 126 ctrlOptArrow ];   # 上半分 ↑
+    "243" = [ 65535 125 ctrlOptArrow ];   # 下半分 ↓
+    "237" = [ 102 3 ctrlOpt ];            # 画面全体に表示 F
+  };
+  tileHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: params: ''
     as_user defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add ${id} \
-      '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>65535</integer><integer>${toString keyCode}</integer><integer>9175040</integer></array><key>type</key><string>standard</string></dict></dict>'
+      '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array>${lib.concatMapStrings (p: "<integer>${toString p}</integer>") params}</array><key>type</key><string>standard</string></dict></dict>'
   '') tileHotKeys);
 in
 {
