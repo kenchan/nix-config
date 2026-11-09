@@ -29,6 +29,15 @@ let
     ${limaDockerExists} || exit 0
     exec ${limactl} start --tty=false docker
   '';
+
+  # 標準のタイル機能で半分に寄せるキー(symbolichotkeys の 240〜243)。既定の Fn+Control+矢印は Advantage360 では
+  # Fn がファームウェアに取られて押せないので Control+Option+矢印にする。
+  # 修飾キーの値は Control(0x40000) + Option(0x80000) + 矢印キーに付く Fn フラグ(0x800000)
+  tileHotKeys = { "240" = 123; "241" = 124; "242" = 126; "243" = 125; };   # ← → ↑ ↓ のキーコード
+  tileHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: keyCode: ''
+    as_user defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add ${id} \
+      '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array><integer>65535</integer><integer>${toString keyCode}</integer><integer>9175040</integer></array><key>type</key><string>standard</string></dict></dict>'
+  '') tileHotKeys);
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -246,6 +255,11 @@ in
       as_user /usr/bin/osascript -l JavaScript ${./input-sources.js} "/Library/Input Methods/macSKK.app" \
         || echo "警告: 入力ソースを設定できませんでした" >&2
     fi
+
+    # タイル機能のキーを Control+Option+矢印にする。symbolichotkeys には入力ソースや Spaces の切り替えも入っているので、
+    # CustomUserPreferences で丸ごと書き換えず、該当の番号だけ書き足してからログインし直さずに反映する
+    ${tileHotKeyCommands}
+    as_user /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 
     # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)。
     # brew が無いときに switch 全体を止めないよう、あるときだけ実行する
