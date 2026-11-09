@@ -1,10 +1,10 @@
-// 入力ソースを macSKK(ASCII とひらがなのモード)に揃える。osascript -l JavaScript で実行する。
-// defaults の com.apple.HIToolbox は書いても安定して反映されないので、TIS の API を直接呼ぶ。
-// - macSKK 本体と ASCII・ひらがなのモードを有効にする。ひらがなも入力ソースにしておくと、Ctrl+J で
-//   入力ソースそのものが切り替わり、Ghostty などのターミナルが IME の処理だと判断できる
-//   (ASCII だけだとモードが macSKK の中で変わるだけで、ターミナルが Ctrl+J や l/q も自分で処理してしまう)
-// - 今の入力ソースが macSKK でなければ ASCII モードに切り替える
-// 引数: macSKK.app のパス
+// Sets the input sources to macSKK (its ASCII and hiragana modes). Run with `osascript -l JavaScript`.
+// Writing com.apple.HIToolbox with `defaults` does not apply reliably, so this calls the TIS API directly.
+// - Enables macSKK and its ASCII and hiragana modes. With hiragana as an input source too, Ctrl+J changes
+//   the input source itself, so terminals such as Ghostty can tell the IME handled the key
+//   (with ASCII alone the mode changes only inside macSKK, and the terminal also handles Ctrl+J and l/q).
+// - Switches to the ASCII mode unless macSKK is already selected.
+// Argument: path to macSKK.app
 ObjC.import("Carbon");
 
 const BUNDLE = "net.mtgto.inputmethod.macSKK";
@@ -41,23 +41,23 @@ function run(argv) {
   const log = [];
   let byId = sources();
 
-  // 入れた直後でまだ macOS に登録されていなければ登録する
+  // Register macSKK if macOS doesn't know it yet, right after installing
   if (!byId[BUNDLE]) {
     $.TISRegisterInputSource($.NSURL.fileURLWithPath(argv[0]));
     byId = sources();
-    if (!byId[BUNDLE]) return "警告: macSKK が入力ソースとして見つかりません(" + argv[0] + ")";
-    log.push("macSKK を登録しました");
+    if (!byId[BUNDLE]) return "warning: macSKK not found as an input source (" + argv[0] + ")";
+    log.push("registered macSKK");
   }
 
   for (const id of ENABLE) {
     if (!isEnabled(byId[id])) {
       $.TISEnableInputSource(byId[id]);
-      log.push(id + " を有効にしました");
+      log.push("enabled " + id);
     }
   }
 
-  // 有効にしたと返っても実際には有効にならないことがあるので、読み直して確かめる。
-  // 入力モードは有効になるまで少しかかるので、何度か待って読み直す
+  // Enabling can report success without taking effect, so read the state back to check.
+  // An input mode takes a moment to show as enabled, so retry a few times.
   let failed = [];
   for (let i = 0; i < 10; i++) {
     byId = sources();
@@ -65,12 +65,12 @@ function run(argv) {
     if (!failed.length) break;
     delay(0.3);
   }
-  if (failed.length) return log.concat("警告: 有効にできませんでした: " + failed.join(", ")).join("\n");
+  if (failed.length) return log.concat("warning: could not enable " + failed.join(", ")).join("\n");
 
   const current = sourceId(ObjC.castRefToObject($.TISCopyCurrentKeyboardInputSource()));
   if (!current || !current.startsWith(BUNDLE)) {
     $.TISSelectInputSource(byId[SELECT]);
-    log.push(current + " から " + SELECT + " に切り替えました");
+    log.push("switched from " + current + " to " + SELECT);
   }
 
   return log.join("\n");

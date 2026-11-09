@@ -1,120 +1,143 @@
-# nix-darwin
+# nix-config
 
-Mac の macOS 設定とアプリを管理する nix-darwin の flake。
-設定の名前はホスト名ではなく `default` に固定しているので、適用時は `#default` を付ける(付けないとホスト名で探して失敗する)。
-言語ランタイムは mise、シェルやエディタの設定は [dotfiles](https://github.com/kenchan/dotfiles) で管理する。
+nix-darwin flake for my Mac: macOS settings, CLI tools, and GUI apps.
+Language runtimes and dev tools come from mise, and shell/editor settings from
+[dotfiles](https://github.com/kenchan/dotfiles).
 
-## 適用
+| What | Managed by |
+|---|---|
+| macOS settings, CLI tools | nix-darwin (this repository), on [Determinate Nix](https://determinate.systems/) |
+| GUI apps | nix-darwin's Homebrew module (casks) |
+| Language runtimes, dev tools | mise (`config/mise/config.toml` in dotfiles) |
+| Shell, editor, git settings | dotfiles (mise `[dotfiles]`) |
 
-設定を変えたら反映する(何も更新しない。Homebrew は足した cask を入れるだけ):
+home-manager is not used: dotfiles are shared with Linux (WSL) machines and deployed by mise.
+
+## Apply
+
+The configuration is named `default` rather than after the hostname, so always pass `#default`
+(without it, `darwin-rebuild` looks for the hostname and fails):
 
 ```sh
 sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default
 ```
 
-`casks` から消しても、アプリはアンインストールされない(`onActivation.cleanup = "none"`)。消したいときは手で:
+`switch` only applies the configuration; it does not upgrade anything. Homebrew installs newly added
+casks but never upgrades or uninstalls (`onActivation.cleanup = "none"`), so after removing an app from
+`casks`, uninstall it by hand:
 
 ```sh
-brew uninstall --cask <名前>
+brew uninstall --cask <name>
 ```
 
-全部を最新にする:
+## Update
+
+`update-world` in dotfiles updates everything. On macOS it runs the steps that ask for Touch ID first:
+
+1. `nix flake update` and `darwin-rebuild switch`
+2. `brew update` and `brew upgrade`
+3. mise tools, fish plugins, gh extensions, and other tools
+4. `apt-get full-upgrade` in the Lima VM, restarting the VM when a reboot is required
+
+Pass tokens from the caller. `GITHUB_TOKEN` avoids GitHub API rate limits (for Nix and mise), and
+`MISE_GITHUB_ENTERPRISE_TOKEN` is needed when mise installs tools from a GitHub Enterprise host:
 
 ```sh
-nix flake update --flake ~/src/github.com/kenchan/nix-config                   # nixpkgs / nix-darwin / SKK 辞書
-sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default
-brew update && brew upgrade                                     # Homebrew の cask
-mise upgrade                                                    # mise のツール
+GITHUB_TOKEN=$(gh auth token) mise run update-world
 ```
 
-古い世代の掃除(Determinate Nix なので `nix.gc` は使えない)。1 週間より古い世代と、使われなくなったパッケージを消す
-(今の世代は古くても消えない):
+Commit `flake.lock` once the new versions work.
+
+Clean up old generations by hand when you like (`nix.gc` is unavailable with Determinate Nix).
+Determinate's own automatic GC only frees unreferenced paths under disk pressure and keeps generations:
 
 ```sh
 sudo nix-collect-garbage --delete-older-than 7d
 ```
 
-Determinate Nix 自身の自動 GC(既定で有効)はディスクの空きが減ったときに使われていないパッケージを消すだけで、
-古い世代は消さない。世代は 1 つあたり小さいので、気が向いたときに手で掃除すれば十分。
-
-## 新しい Mac のセットアップ
+## Setting up a new Mac
 
 1. `xcode-select --install`
-2. Nix(Determinate):`curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
-3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-4. このリポジトリを `~/src/github.com/kenchan/nix-config`(ghq の置き場所)に置く。ghq はまだ無いので Xcode の Command Line Tools の git で:
+2. Determinate Nix: `curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
+3. Homebrew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
+4. Clone this repository into the ghq layout with the Command Line Tools' git (ghq is not installed yet):
    ```sh
    git clone https://github.com/kenchan/nix-config.git ~/src/github.com/kenchan/nix-config
    ```
-5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/src/github.com/kenchan/nix-config#default`
-   - ネットワークにつながり、画面にログインした状態で実行する(Docker 用の Lima VM のイメージをダウンロードするので数分かかる)
-   - 終わったら、もう一度 `sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default` する。
-     macSKK の辞書を置くフォルダは macSKK が初めて起動したとき(1 回目の switch の最後)にできるので、辞書は 2 回目で置かれる
-6. 新しいターミナルを開いて(Nix で入れたコマンドに PATH が通る)、dotfiles:
+5. First switch: `sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/src/github.com/kenchan/nix-config#default`
+   - Run it while logged in to the GUI and online; it downloads the Lima VM image, which takes a few minutes.
+   - Then switch again with `darwin-rebuild`. macSKK creates its dictionary folder on first launch
+     (at the end of the first switch), so the dictionaries are installed by the second one.
+6. Open a new terminal (so the Nix paths are on `PATH`) and set up dotfiles:
    ```sh
    git clone https://github.com/kenchan/dotfiles.git ~/src/github.com/kenchan/dotfiles
    cd ~/src/github.com/kenchan/dotfiles
    mise trust
-   mise bootstrap                      # dotfiles のリンク、mise のツール、fish のプラグイン
-   herdr integration install claude    # Claude Code の SessionStart フック(~/.claude/settings.json に書く)
+   mise bootstrap                      # dotfiles links, mise tools, fish plugins
+   herdr integration install claude    # Claude Code SessionStart hook (written to ~/.claude/settings.json)
    ```
-   既にファイルがあってリンクできないと言われたら、中身を確かめてから `mise dotfiles apply --force`
-7. 下の「手作業」をやる
+   If a link fails because a file already exists, check it and run `mise dotfiles apply --force`.
+7. Do the manual steps below.
 
-## 手作業(Nix で管理していないもの)
+## What switch sets up
 
-### 入力ソースと macSKK の辞書
-`darwin-rebuild switch` のときと、ログイン時(`launchd.user.agents.input-sources`)に `input-sources.js` が入力ソースを揃える
-(`defaults` の `com.apple.HIToolbox` は安定して反映されないので、TIS の API を osascript から呼ぶ)。
+### Login shell
 
-- macSKK 本体と **ASCII**・**ひらがな** のモードを有効にし、今の入力ソースが macSKK でなければ ASCII に切り替える
-- ひらがなも入力ソースにしておくと、Ctrl+J で入力ソースそのものが切り替わるので、Ghostty が IME の処理だと判断できる
-  (ASCII だけだと Ghostty が Ctrl+J を改行としても送る)。Ghostty 側でも dotfiles の設定で `keybind = ctrl+j=ignore` にしている
-- ターミナル.app はキーを IME より先に処理するので、Ctrl+J でひらがなに入れない。ターミナルは Ghostty を使う
-- ABC は macOS の制約で消せないので残る
-- 手作業: 「キーボードショートカット」→「入力ソース」の「前の入力ソースを選択」をオフにすると ABC に切り替わりにくい
+fish (`/run/current-system/sw/bin/fish`), so Ghostty, Terminal.app, and Herdr open fish without per-app
+settings. It is set with `dscl` on switch: `users.users.<name>.shell` only applies to users in
+`users.knownUsers`, and the MDM-created account should stay outside nix-darwin.
 
-macSKK の辞書は macSKK が初めて起動したときに作られるフォルダに置くので、新しい Mac では
-初回の switch(ここで macSKK が有効になって起動する)のあとに、もう一度 switch すると配置・有効化される。
+If Nix breaks and fish disappears, terminals close immediately (booting and GUI login are unaffected).
+Change the login shell back to `/bin/zsh` in System Settings → Users & Groups → right-click your user →
+Advanced Options.
 
-### git / gh
-署名(1Password)と HTTPS の認証(`git-credential-gh`)は dotfiles 側で Mac にも対応しているので、`~/.config/git/config.local` は空でよい。
-gh(Nix で入れている)に各アカウントでログインする:
+### Input sources and macSKK
 
-```sh
-gh auth login --hostname github.com --git-protocol https --web     # アカウントごとに
-```
+`input-sources.js` sets the input sources on switch and at login (`launchd.user.agents.input-sources`).
+It calls the TIS API from osascript, because writing `com.apple.HIToolbox` with `defaults` does not apply
+reliably.
 
-- 「Authenticate Git with your GitHub credentials?」は **n**(`Y` だと dotfiles の `~/.config/git/config` に書き込まれる)
-- 同じホストに複数のアカウントがあるときは、リポジトリで `git config credential.username <アカウント>` を設定して選ぶ
+- It enables macSKK with its **ASCII** and **hiragana** modes, and switches to ASCII unless macSKK is
+  already selected.
+- The hiragana mode is an input source too, so Ctrl+J changes the input source itself and Ghostty can tell
+  the IME handled it. With ASCII alone, Ghostty also sends Ctrl+J as a newline. dotfiles additionally sets
+  `keybind = ctrl+j=ignore` for Ghostty.
+- Terminal.app handles keys before the IME, so Ctrl+J cannot switch to hiragana there. Use Ghostty.
+- ABC cannot be removed (macOS requires a keyboard layout).
 
-### 1Password
-- アプリは Nix / Homebrew では入れない。会社の Mac は MDM で入っていることがあり、cask にすると
-  「もうアプリがある」で Homebrew が失敗して switch 全体が止まるため。入っていなければ公式サイトから入れる
-  (CLI の `op` は Nix の `programs._1password` で入る)
-- 「設定」→「開発者」で **1Password CLI と連携** をオン(`op vault list` で Touch ID が出れば OK)
-- 同じ画面で **SSH エージェントを使用** をオン
-- `~/.ssh/config`:
-  ```sshconfig
-  Host *
-    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-  ```
+SKK dictionaries (L, jinmei, geo, station, emoji) come from nixpkgs and are copied into macSKK's sandbox
+container on switch.
 
-### Herdr
-- Herdr.app を起動すると herdr-core のインストールを案内される(`~/.local/bin/herdr-core` と `hc`)
-- ログインシェルが fish なので、シェルの設定は要らない
+### Keyboard
 
-### ログインシェル
-switch のときに fish(`/run/current-system/sw/bin/fish`)にする。Ghostty、ターミナル.app、Herdr はこれで fish で開く。
-Nix が壊れて fish が無くなると、ターミナルがすぐ閉じる(Mac の起動や GUI のログインには影響しない)。そのときは
-「システム設定」→「ユーザとグループ」→ 自分を右クリック →「詳細オプション」でログインシェルを `/bin/zsh` に戻す。
+Caps Lock is Control. `system.keyboard` only runs `hidutil` during activation and the mapping is lost on
+reboot, so a login agent applies it again.
 
-### Docker(Lima の rootless Docker)
-Mac 側は Nix の docker CLI(compose / buildx 付き)だけで、dockerd は Lima の VM で rootless で動かす。
-`darwin-rebuild switch` のときに、VM(`docker`)と docker context(`lima-docker`)が無ければ作る(初回はイメージのダウンロードで数分かかる)。
-VM はログイン時に `launchd.user.agents.lima-docker` が起動する(VM が無いときは何もしない)。
+### Window tiling
 
-自動で作れなかったときは手で作る(作成が途中で失敗した VM が残っていると次の switch でも作り直されないので、先に消す):
+macOS's built-in tiling: drag to a screen edge, hover over the green button, or use the keys below.
+The default shortcuts use Fn, which the Advantage360 firmware takes for itself, so switch rewrites the
+system shortcuts (`com.apple.symbolichotkeys` 237 and 240–243, the same ones Keyboard Shortcuts edits).
+Only those entries are added, since the same plist holds the input source and Spaces shortcuts.
+
+| Keys | Action |
+|---|---|
+| Control+Option+← / → | Left / right half |
+| Control+Option+↑ / ↓ | Top / bottom half |
+| Control+Option+F | Fill |
+
+Auto-tiling window managers (Amethyst) were dropped because windows jump around whenever one opens or
+closes. Google Sheets and Docs take Control+Option shortcuts for themselves.
+
+### Docker (rootless, in a Lima VM)
+
+The Mac has only the Docker CLI from Nix (with compose and buildx); dockerd runs rootless in a Lima VM.
+Docker Desktop and OrbStack need paid licenses for company use.
+
+On switch, the VM (`docker`) and the docker context (`lima-docker`) are created if missing (the first
+time downloads an image). A login agent starts the VM, and does nothing if it does not exist.
+
+To create it by hand (delete a half-created VM first, since switch does not recreate an existing one):
 
 ```sh
 limactl delete --force docker
@@ -124,22 +147,63 @@ docker context use lima-docker
 docker run --rm hello-world
 ```
 
-- `template:docker` は rootless の dockerd(`docker info` の SecurityOptions に `name=rootless`)
-- `--mount-writable` がないとホームが読み取り専用でマウントされ、bind mount に書けない
-- Nix が面倒を見るのは「無ければ作る」まで。VM の設定(CPU やメモリなど)を変えたら作り直す
-- 既存の VM を変えるときは `limactl stop docker && limactl edit --mount-writable docker && limactl start docker`
-- VM の起動ログは `/tmp/lima-docker.log`
+- `template:docker` runs rootless dockerd (`docker info` shows `name=rootless` in SecurityOptions).
+- Without `--mount-writable`, the home directory is mounted read-only and bind mounts cannot be written.
+- Nix only creates the VM when it is missing. Recreate it to change its settings (CPUs, memory, ...).
+- Security updates come from unattended-upgrades inside the VM; `update-world` upgrades the rest.
+- The login agent's log is `/tmp/lima-docker.log`.
 
-### ウィンドウの配置
-macOS 標準のタイル機能を使う(自動で並べ直すタイル型ウィンドウマネージャーはウィンドウの開閉のたびに配置が動くので使わない)。
-画面の端にドラッグする、緑のボタンにマウスを乗せる、または Control+Option+矢印キーで半分に、Control+Option+F で画面全体に寄せる。
-既定の Fn+Control+矢印は Advantage360 では Fn が押せないので、switch のときにシステムのショートカット
-(`com.apple.symbolichotkeys` の 237 と 240〜243、「キーボードショートカット」で変えられるものと同じ)を書き換えている。
+### launchd jobs that run /nix binaries
+
+They are written with `command`, which starts them through `/bin/sh` and waits for `/nix/store`, so
+launchd does not disable a job that loads before `/nix` is mounted at boot.
+
+## Manual steps
+
+### git and gh
+
+Commit signing (1Password) and HTTPS authentication (`git-credential-gh`) are set up by dotfiles.
+`~/.config/git/config.local` holds machine-specific settings only, such as which account to use per URL.
+Log in to gh for each account:
+
+```sh
+gh auth login --hostname github.com --git-protocol https --web
+```
+
+- Answer **n** to "Authenticate Git with your GitHub credentials?". **Y** writes into
+  `~/.config/git/config`, which is a symlink into dotfiles.
+- With several accounts on one host, pick one with `credential.<url>.username` in `config.local`,
+  or with `git config credential.username <account>` in a repository.
+
+### 1Password
+
+- Install the app yourself. It is not a cask: on Macs where MDM already installed it, Homebrew fails with
+  "already an app" and stops the whole switch, and adopting it (`--adopt`) is blocked by macOS's
+  App Management protection. The `op` CLI comes from `programs._1password`.
+- In Settings → Developer, turn on **Integrate with 1Password CLI** (`op vault list` should ask for
+  Touch ID) and **Use the SSH agent**.
+- `~/.ssh/config`:
+  ```sshconfig
+  Host *
+    IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+  ```
+
+### Input sources
+
+In Keyboard Shortcuts → Input Sources, turn off "Select the previous input source" so you do not end up
+in ABC by accident.
+
+### Herdr
+
+Herdr.app offers to install herdr-core (`~/.local/bin/herdr-core` and `hc`) on first launch.
+The herdr CLI itself comes from mise.
 
 ### Kensington SlimBlade
-- Kensington のサイトから公式アプリ(Kensington Konnect)を入れる。Homebrew にない
-- アクセシビリティと入力監視を許可する
 
-### ログイン項目
-- 「システム設定」→「一般」→「ログイン項目と機能拡張」で、アプリ自身が登録した「ログイン時に開く」を整理する
-- MDM が管理しているものは触らない
+Install Kensington Konnect from Kensington's site (it is not on Homebrew), and allow Accessibility and
+Input Monitoring.
+
+### Login items
+
+Clean up "Open at Login" entries that apps register in System Settings → General → Login Items &
+Extensions. Leave the ones managed by MDM alone.

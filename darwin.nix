@@ -3,7 +3,7 @@ let
   user = config.system.primaryUser;
   home = "/Users/${user}";
 
-  # macSKK で使う辞書(encoding: 3 = EUC-JP, 4 = UTF-8)
+  # Dictionaries for macSKK (encoding: 3 = EUC-JP, 4 = UTF-8)
   skkDicts = with pkgs.skkDictionaries; [
     { pkg = l;       file = "SKK-JISYO.L";       encoding = 3; }
     { pkg = jinmei;  file = "SKK-JISYO.jinmei";  encoding = 3; }
@@ -12,36 +12,37 @@ let
     { pkg = emoji;   file = "SKK-JISYO.emoji";   encoding = 4; }
   ];
 
-  # macSKK のローマ字かな変換ルール(デフォルトとの差分)
+  # macSKK romaji-to-kana rules on top of the defaults: full-width ! and ? in kana modes
   skkKanaRule = pkgs.writeText "kana-rule.conf" ''
     #!use-default
     !,！
     ?,？
   '';
 
-  # Docker 用の Lima VM(rootless の template:docker、ホームは書き込み可でマウント)
+  # Lima VM for Docker (rootless template:docker, home mounted writable)
   limactl = "${pkgs.lima}/bin/limactl";
   docker = "${pkgs.docker-client}/bin/docker";
   limaDockerExists = "${limactl} list -q 2>/dev/null | /usr/bin/grep -qx docker";
 
-  # ログイン時に VM を起動する。VM が無いときは何もしない(作るのは switch 時の postActivation)
+  # Starts the VM at login. Does nothing if the VM is missing: `limactl start` would otherwise create one
+  # without the writable mount. The VM is created by postActivation on switch.
   limaDockerStart = pkgs.writeShellScript "lima-docker-start" ''
     ${limaDockerExists} || exit 0
     exec ${limactl} start --tty=false docker
   '';
 
-  # 標準のタイル機能のキー(symbolichotkeys)。既定の Fn+Control+矢印などは Advantage360 では
-  # Fn がファームウェアに取られて押せないので Control+Option にする。
-  # parameters は [文字コード(矢印は 65535), キーコード, 修飾キー]。修飾キーは Control(0x40000) + Option(0x80000)、
-  # 矢印キーにはさらに Fn フラグ(0x800000)が付く
+  # Built-in window tiling shortcuts (symbolichotkeys). The defaults use Fn+Control, and the Advantage360
+  # firmware takes Fn, so use Control+Option instead.
+  # parameters are [character code (65535 for arrows), key code, modifiers]. Modifiers are
+  # Control (0x40000) + Option (0x80000); arrow keys also carry the Fn flag (0x800000).
   ctrlOpt = 786432;
   ctrlOptArrow = 9175040;
   tileHotKeys = {
-    "240" = [ 65535 123 ctrlOptArrow ];   # 左半分 ←
-    "241" = [ 65535 124 ctrlOptArrow ];   # 右半分 →
-    "242" = [ 65535 126 ctrlOptArrow ];   # 上半分 ↑
-    "243" = [ 65535 125 ctrlOptArrow ];   # 下半分 ↓
-    "237" = [ 102 3 ctrlOpt ];            # 画面全体に表示 F
+    "240" = [ 65535 123 ctrlOptArrow ];   # left half, ←
+    "241" = [ 65535 124 ctrlOptArrow ];   # right half, →
+    "242" = [ 65535 126 ctrlOptArrow ];   # top half, ↑
+    "243" = [ 65535 125 ctrlOptArrow ];   # bottom half, ↓
+    "237" = [ 102 3 ctrlOpt ];            # fill, F
   };
   tileHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: params: ''
     as_user defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add ${id} \
@@ -50,16 +51,16 @@ let
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
-  nix.enable = false;            # Determinate Nix を使うため
+  nix.enable = false;            # Determinate Nix manages Nix itself
   system.primaryUser = "kenchan";
   system.stateVersion = 6;
 
   environment.systemPackages = with pkgs; [
     git
-    gh                                 # dotfiles の git-credential-gh が使う。fish 以外(GUI や Claude Code)からも見えるように
+    gh                                 # used by git-credential-gh in dotfiles; from Nix so GUI apps and Claude Code see it too, not just fish
     mise
 
-    # wsl-setup で入れていた CLI(言語やランタイムは mise で管理)
+    # CLI tools (language runtimes and dev tools come from mise)
     bat
     consul-template
     direnv
@@ -84,20 +85,20 @@ in
     starship
     wget
 
-    # Docker: Lima の VM で rootless の dockerd を動かし、Mac 側は CLI だけ
+    # Docker: rootless dockerd runs in a Lima VM; the Mac only has the CLI
     lima
     docker-client
     docker-compose
     docker-buildx
   ];
 
-  # docker compose / docker buildx をプラグインとして見つけられるようにする
+  # Lets docker find compose and buildx as CLI plugins
   environment.pathsToLink = [ "/libexec/docker" ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "1password-cli" ];
 
-  # 1Password CLI(アプリ連携のため /usr/local/bin/op に置かれる)
+  # 1Password CLI, installed as /usr/local/bin/op for the app integration
   programs._1password.enable = true;
 
   environment.variables.HOMEBREW_NO_ANALYTICS = "1";
@@ -105,8 +106,8 @@ in
   programs.fish.enable = true;
   environment.shells = [ pkgs.fish ];
 
-  # ログインシェルは fish(下の postActivation で設定)。zsh を使う場面(Claude Code のコマンド実行など)でも
-  # mise のツール(node など)を使えるようにする(fish 側の mise activate は dotfiles の config.fish でやっている)
+  # The login shell is fish (set in postActivation below). Activate mise in zsh too, for things that use
+  # zsh such as Claude Code's command execution. fish activates mise in dotfiles' config.fish.
   programs.zsh.interactiveShellInit = ''
     eval "$(${pkgs.mise}/bin/mise activate zsh)"
   '';
@@ -114,24 +115,24 @@ in
   homebrew = {
     enable = true;
     onActivation = {
-      # switch は反映だけにして、アプリの更新は `brew update && brew upgrade` で別にやる
+      # switch only applies; apps are upgraded separately with `brew update && brew upgrade`
       autoUpdate = false;
       upgrade = false;
-      cleanup = "none";          # 慣れたら "zap"(リストにないアプリを削除)
-      # sudo で動く switch には environment.variables が渡らないので、ここでも指定する
+      cleanup = "none";          # "zap" or "uninstall" would also remove apps not in casks, such as the MDM-installed 1Password
+      # environment.variables does not reach the brew that switch runs under sudo
       extraEnv.HOMEBREW_NO_ANALYTICS = "1";
     };
     brews = [ ];
     casks = [
       "brave-browser"
-      "chatgpt"                        # Codex のデスクトップアプリも統合済み(2026-07)
-      "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
+      "chatgpt"                        # includes the Codex desktop app since 2026-07
+      "claude-code@latest"             # the CLI, latest channel ("claude-code" is stable)
       "ghostty"
       "herdr-app"
       "macskk"
       "notion"
     ];
-    masApps = { };               # 例: "Xcode" = 497799835;
+    masApps = { };               # e.g. "Xcode" = 497799835;
   };
 
   system.defaults = {
@@ -139,46 +140,45 @@ in
       autohide = true;
       show-recents = false;
       tilesize = 48;
-      mru-spaces = false;              # Spaces の並びを自動で入れ替えない
+      mru-spaces = false;              # don't rearrange Spaces by recent use
     };
     finder = {
       AppleShowAllExtensions = true;
       ShowPathbar = true;
-      FXPreferredViewStyle = "Nlsv";   # リスト表示
+      FXPreferredViewStyle = "Nlsv";   # list view
     };
     NSGlobalDomain = {
-      AppleInterfaceStyle = "Dark";    # ダークモード
+      AppleInterfaceStyle = "Dark";
       KeyRepeat = 2;
       InitialKeyRepeat = 15;
       ApplePressAndHoldEnabled = false;
-      # 自動修正・自動置換をオフ
+      # No automatic correction or substitution
       NSAutomaticSpellingCorrectionEnabled = false;
       NSAutomaticCapitalizationEnabled = false;
       NSAutomaticQuoteSubstitutionEnabled = false;
       NSAutomaticDashSubstitutionEnabled = false;
       NSAutomaticPeriodSubstitutionEnabled = false;
     };
-    trackpad.Clicking = true;          # タップでクリック
+    trackpad.Clicking = true;          # tap to click
     screencapture = {
       location = "${home}/Pictures/Screenshots";
       disable-shadow = true;
     };
     CustomUserPreferences = {
-      # ネットワークドライブと USB に .DS_Store を作らない
+      # No .DS_Store on network and USB volumes
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
         DSDontWriteUSBStores = true;
       };
-      # 再ログイン時に前回のアプリやウインドウを開き直さない
+      # Don't reopen apps and windows after logging back in
       "com.apple.loginwindow" = {
         TALLogoutSavesState = false;
         LoginwindowLaunchesRelaunchApps = false;
       };
-      # macSKK: 変換候補の横にシステム辞書の注釈を出さない
       "net.mtgto.inputmethod.macSKK" = {
-        showAnnotation = false;
-        kanaRule = "kana-rule.conf";   # 下の preActivation で配置するルールを使う
-        # 有効にする辞書(ファイルは下の preActivation で配置)
+        showAnnotation = false;        # no system dictionary annotations next to candidates
+        kanaRule = "kana-rule.conf";   # installed by preActivation below
+        # Enabled dictionaries; the files are installed by preActivation below
         dictionaries = map (d: {
           filename = d.file;
           inherit (d) encoding;
@@ -195,7 +195,7 @@ in
     remapCapsLockToControl = true;
   };
 
-  # system.keyboard は switch のときに hidutil を実行するだけで、再起動すると消えるので、ログインのたびにかけ直す
+  # system.keyboard only runs hidutil during activation and the mapping is lost on reboot, so apply it at every login
   launchd.user.agents.keyboard-remap.serviceConfig = {
     ProgramArguments = [
       "/usr/bin/hidutil" "property" "--set"
@@ -206,13 +206,13 @@ in
 
   security.pam.services.sudo_local = {
     touchIdAuth = true;
-    reattach = true;                   # herdr-core などのセッション内でも Touch ID を使う
+    reattach = true;                   # Touch ID inside terminal multiplexers such as herdr-core too
   };
 
-  # /nix にある実行ファイルを起動する launchd のジョブは command で書く。/bin/sh 経由で /nix/store が
-  # 見えるまで待ってから起動するので、起動直後に /nix がまだマウントされていなくても launchd に無効にされない
+  # launchd jobs that run executables under /nix are written with `command`, which starts them through
+  # /bin/sh and waits for /nix/store, so launchd does not disable a job that loads before /nix is mounted.
 
-  # ログイン時に Docker 用の Lima VM を起動
+  # Start the Lima VM for Docker at login
   launchd.user.agents.lima-docker = {
     command = "${limaDockerStart}";
     serviceConfig = {
@@ -222,8 +222,8 @@ in
     };
   };
 
-  # ログイン時は macOS が ABC を選ぶので、switch のときと同じく macSKK に揃える。
-  # ログイン直後は macOS 側の入力ソースの復元と競合しうるので少し待ってから実行する
+  # macOS selects ABC at login, so set the input sources to macSKK as on switch.
+  # Wait a moment first, since macOS restores its own input source right after login.
   launchd.user.agents.input-sources = {
     command = "${pkgs.writeShellScript "input-sources-at-login" ''
       sleep 5
@@ -237,56 +237,56 @@ in
   };
 
   system.activationScripts.postActivation.text = ''
-    # ログイン中の GUI セッションのユーザーとして実行する(Lima の VM や入力ソースの操作に必要)
+    # Run as the user in the logged-in GUI session (needed for the Lima VM and input sources)
     as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
 
-    # ログインシェルを fish にする。users.users.<名前>.shell は users.knownUsers で管理するユーザーにしか
-    # 効かず、MDM が作ったアカウントを nix-darwin の管理下に置きたくないので、シェルだけ dscl で変える
+    # Make fish the login shell. users.users.<name>.shell only applies to users in users.knownUsers,
+    # and the MDM-created account should stay outside nix-darwin, so change just the shell with dscl.
     if [ "$(dscl . -read /Users/${user} UserShell | awk '{print $2}')" != /run/current-system/sw/bin/fish ]; then
       dscl . -create /Users/${user} UserShell /run/current-system/sw/bin/fish
     fi
 
-    # スクリーンショットの保存先
+    # Screenshot folder
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
 
-    # docker CLI が標準で探す場所に Nix のプラグインをつなぐ
+    # Link Nix's docker CLI plugins to where docker looks for them by default
     install -d /usr/local/lib/docker
     ln -sfn /run/current-system/sw/libexec/docker/cli-plugins /usr/local/lib/docker/cli-plugins
 
-    # Docker 用の Lima VM と docker context を無ければ作る。
-    # 初回はイメージのダウンロードで数分かかる。失敗しても switch は止めない
+    # Create the Lima VM for Docker and the docker context if missing.
+    # The first time downloads an image and takes a few minutes. Failures don't stop the switch.
     if ! as_user sh -c '${limaDockerExists}'; then
-      echo "Docker 用の Lima VM を作成します(初回はダウンロードに数分かかります)..." >&2
+      echo "Creating the Lima VM for Docker (the first time downloads an image and takes a few minutes)..." >&2
       as_user ${limactl} start --name=docker --mount-writable --tty=false template:docker \
-        || echo "警告: Lima VM の作成に失敗しました。README の「Docker」を見て手で作ってください" >&2
+        || echo "warning: failed to create the Lima VM; create it by hand (see Docker in README)" >&2
     fi
     if ! as_user ${docker} context inspect lima-docker >/dev/null 2>&1; then
       as_user ${docker} context create lima-docker --docker "host=unix://${home}/.lima/docker/sock/docker.sock" >/dev/null \
         && as_user ${docker} context use lima-docker >/dev/null \
-        || echo "警告: docker context lima-docker を作れませんでした" >&2
+        || echo "warning: failed to create the docker context lima-docker" >&2
     fi
 
-    # 入力ソースを macSKK(ASCII モードだけ)に揃え、ABC になっていたら切り替える(input-sources.js)。
-    # macSKK の cask はこれより前の Homebrew の段階で入る
+    # Set the input sources to macSKK (ASCII and hiragana modes) and switch away from ABC (input-sources.js).
+    # The macSKK cask is installed earlier, in the Homebrew step.
     if [ -d "/Library/Input Methods/macSKK.app" ]; then
       as_user /usr/bin/osascript -l JavaScript ${./input-sources.js} "/Library/Input Methods/macSKK.app" \
-        || echo "警告: 入力ソースを設定できませんでした" >&2
+        || echo "warning: failed to set the input sources" >&2
     fi
 
-    # タイル機能のキーを Control+Option+矢印にする。symbolichotkeys には入力ソースや Spaces の切り替えも入っているので、
-    # CustomUserPreferences で丸ごと書き換えず、該当の番号だけ書き足してからログインし直さずに反映する
+    # Window tiling shortcuts. symbolichotkeys also holds the input source and Spaces shortcuts, so add only
+    # these entries instead of replacing the whole plist with CustomUserPreferences, then apply without logging out.
     ${tileHotKeyCommands}
     as_user /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 
-    # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)。
-    # brew が無いときに switch 全体を止めないよう、あるときだけ実行する
+    # Opt out of Homebrew analytics in its own settings too, for brew runs outside a shell.
+    # Only when brew exists, so a missing Homebrew doesn't stop the whole switch.
     if [ -x /opt/homebrew/bin/brew ]; then
       sudo --user=${user} --set-home -- /opt/homebrew/bin/brew analytics off
     fi
   '';
 
-  # macSKK の辞書を配置(サンドボックス内から読むのでシンボリックリンクではなくコピー)。
-  # 起動中の macSKK は新しいファイルを無効として登録するので、dictionaries の書き込みより前に置く
+  # Install the macSKK dictionaries. Copies rather than symlinks, because macSKK reads them from its sandbox.
+  # A running macSKK registers new files as disabled, so put them in place before dictionaries is written.
   system.activationScripts.preActivation.text = ''
     dir="${home}/Library/Containers/net.mtgto.inputmethod.macSKK/Data/Documents/Dictionaries"
     if [ -d "$dir" ]; then
@@ -294,7 +294,7 @@ in
         cmp -s "$f" "$dir/$(basename "$f")" || install -m 0644 -o ${user} -g staff "$f" "$dir/"
       done
     else
-      echo "macSKK の辞書フォルダがないのでスキップ(macSKK を一度起動してください)" >&2
+      echo "Skipping macSKK dictionaries: the folder does not exist yet (launch macSKK once, then switch again)" >&2
     fi
 
     settings="${home}/Library/Containers/net.mtgto.inputmethod.macSKK/Data/Documents/Settings"

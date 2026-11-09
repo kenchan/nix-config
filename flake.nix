@@ -8,7 +8,7 @@
   };
 
   outputs = { nixpkgs, nix-darwin, ... }: {
-    # ホスト名に依存しないよう名前を固定する。適用時は `--flake ~/src/github.com/kenchan/nix-config#default`
+    # A fixed name instead of the hostname; apply with `--flake ~/src/github.com/kenchan/nix-config#default`
     darwinConfigurations.default = nix-darwin.lib.darwinSystem {
       modules = [ ./darwin.nix ];
     };
