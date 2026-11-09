@@ -9,7 +9,7 @@ Mac の macOS 設定とアプリを管理する nix-darwin の flake。
 設定を変えたら反映する(何も更新しない。Homebrew は足した cask を入れるだけ):
 
 ```sh
-sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
+sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default
 ```
 
 `casks` から消しても、アプリはアンインストールされない(`onActivation.cleanup = "none"`)。消したいときは手で:
@@ -21,8 +21,8 @@ brew uninstall --cask <名前>
 全部を最新にする:
 
 ```sh
-nix flake update --flake ~/.config/nix-darwin                   # nixpkgs / nix-darwin / SKK 辞書
-sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
+nix flake update --flake ~/src/github.com/kenchan/nix-config                   # nixpkgs / nix-darwin / SKK 辞書
+sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default
 brew update && brew upgrade                                     # Homebrew の cask
 mise upgrade                                                    # mise のツール
 ```
@@ -42,13 +42,13 @@ Determinate Nix 自身の自動 GC(既定で有効)はディスクの空きが�
 1. `xcode-select --install`
 2. Nix(Determinate):`curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
 3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-4. このリポジトリを `~/.config/nix-darwin` に置く(Xcode の Command Line Tools の git で取れる):
+4. このリポジトリを `~/src/github.com/kenchan/nix-config`(ghq の置き場所)に置く。ghq はまだ無いので Xcode の Command Line Tools の git で:
    ```sh
-   git clone https://github.com/kenchan/nix-config.git ~/.config/nix-darwin
+   git clone https://github.com/kenchan/nix-config.git ~/src/github.com/kenchan/nix-config
    ```
-5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin#default`
+5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/src/github.com/kenchan/nix-config#default`
    - ネットワークにつながり、画面にログインした状態で実行する(Docker 用の Lima VM のイメージをダウンロードするので数分かかる)
-   - 終わったら、もう一度 `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default` する。
+   - 終わったら、もう一度 `sudo darwin-rebuild switch --flake ~/src/github.com/kenchan/nix-config#default` する。
      macSKK の辞書を置くフォルダは macSKK が初めて起動したとき(1 回目の switch の最後)にできるので、辞書は 2 回目で置かれる
 6. 新しいターミナルを開いて(Nix で入れたコマンドに PATH が通る)、dotfiles:
    ```sh
