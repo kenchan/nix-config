@@ -205,6 +205,9 @@ in
   };
 
   system.activationScripts.postActivation.text = ''
+    # ログイン中の GUI セッションのユーザーとして実行する(Lima の VM や入力ソースの操作に必要)
+    as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
+
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
 
@@ -213,9 +216,7 @@ in
     ln -sfn /run/current-system/sw/libexec/docker/cli-plugins /usr/local/lib/docker/cli-plugins
 
     # Docker 用の Lima VM と docker context を無ければ作る。
-    # VM は GUI セッションのユーザーとして作る(Virtualization.framework を使うため)。
     # 初回はイメージのダウンロードで数分かかる。失敗しても switch は止めない
-    as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
     if ! as_user sh -c '${limaDockerExists}'; then
       echo "Docker 用の Lima VM を作成します(初回はダウンロードに数分かかります)..." >&2
       as_user ${limactl} start --name=docker --mount-writable --tty=false template:docker \
@@ -225,6 +226,13 @@ in
       as_user ${docker} context create lima-docker --docker "host=unix://${home}/.lima/docker/sock/docker.sock" >/dev/null \
         && as_user ${docker} context use lima-docker >/dev/null \
         || echo "警告: docker context lima-docker を作れませんでした" >&2
+    fi
+
+    # 入力ソースを macSKK(ASCII モードだけ)に揃え、ABC になっていたら切り替える(input-sources.js)。
+    # macSKK の cask はこれより前の Homebrew の段階で入る
+    if [ -d "/Library/Input Methods/macSKK.app" ]; then
+      as_user /usr/bin/osascript -l JavaScript ${./input-sources.js} "/Library/Input Methods/macSKK.app" \
+        || echo "警告: 入力ソースを設定できませんでした" >&2
     fi
 
     # Homebrew の利用状況を送らない(シェル以外から brew が動くときのため設定にも書く)。

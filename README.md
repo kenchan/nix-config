@@ -46,15 +46,17 @@ sudo nix-collect-garbage --delete-older-than 30d
 
 ## 手作業(Nix で管理していないもの)
 
-### 入力ソース
-macOS の入力ソースは `defaults` では安定して管理できないので手で設定する。
+### 入力ソースと macSKK の辞書
+`darwin-rebuild switch` のときに `input-sources.js` が入力ソースを揃える
+(`defaults` の `com.apple.HIToolbox` は安定して反映されないので、TIS の API を osascript から呼ぶ)。
 
-- 「システム設定」→「キーボード」→「入力ソース」→「編集…」
-- macSKK の **ひらがな**(「日本語」の中)と **ASCII**(「英語」の中)を追加
-- ABC は macOS の制約で消せないので残す
-- 「キーボードショートカット」→「入力ソース」の「前の入力ソースを選択」をオフにすると ABC に切り替わりにくい
+- macSKK 本体と **ASCII** モードを有効にし、今の入力ソースが macSKK でなければ ASCII に切り替える
+- ひらがななどのモードは入力ソースとしては有効にしない(macSKK の中で Ctrl+J などで切り替える)
+- ABC は macOS の制約で消せないので残る
+- 手作業: 「キーボードショートカット」→「入力ソース」の「前の入力ソースを選択」をオフにすると ABC に切り替わりにくい
 
-macSKK を一度起動してから `darwin-rebuild switch` すると辞書が配置・有効化される。
+macSKK の辞書は macSKK が初めて起動したときに作られるフォルダに置くので、新しい Mac では
+初回の switch(ここで macSKK が有効になって起動する)のあとに、もう一度 switch すると配置・有効化される。
 
 ### git / gh
 署名(1Password)と HTTPS の認証(`git-credential-gh`)は dotfiles 側で Mac にも対応しているので、`~/.config/git/config.local` は空でよい。
