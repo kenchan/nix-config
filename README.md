@@ -34,14 +34,15 @@ sudo nix-collect-garbage --delete-older-than 30d
 3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 4. このリポジトリを `~/.config/nix-darwin` に置く
 5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin#default`
-6. dotfiles:
+6. 新しいターミナルを開いて(Nix で入れたコマンドに PATH が通る)、dotfiles:
    ```sh
    git clone https://github.com/kenchan/dotfiles.git ~/src/github.com/kenchan/dotfiles
    cd ~/src/github.com/kenchan/dotfiles
    mise trust
-   mise dotfiles apply --force '~/.config' '~/.config/nvim' '~/.local/bin' '~/.apm'
+   mise bootstrap                      # dotfiles のリンク、mise のツール、fish のプラグイン
+   herdr integration install claude    # Claude Code の SessionStart フック(~/.claude/settings.json に書く)
    ```
-   `~/.claude` は WSL 向けの設定(`/home/kenchan` のパス、GNU sed 前提のフック)なので Mac では配置しない
+   既にファイルがあってリンクできないと言われたら、中身を確かめてから `mise dotfiles apply --force`
 7. 下の「手作業」をやる
 
 ## 手作業(Nix で管理していないもの)
