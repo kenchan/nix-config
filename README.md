@@ -42,7 +42,10 @@ Determinate Nix 自身の自動 GC(既定で有効)はディスクの空きが�
 1. `xcode-select --install`
 2. Nix(Determinate):`curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
 3. Homebrew:`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
-4. このリポジトリを `~/.config/nix-darwin` に置く
+4. このリポジトリを `~/.config/nix-darwin` に置く(Xcode の Command Line Tools の git で取れる):
+   ```sh
+   git clone https://github.com/kenchan/nix-config.git ~/.config/nix-darwin
+   ```
 5. 初回だけ:`sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/.config/nix-darwin#default`
    - ネットワークにつながり、画面にログインした状態で実行する(Docker 用の Lima VM のイメージをダウンロードするので数分かかる)
    - 終わったら、もう一度 `sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default` する。
