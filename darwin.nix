@@ -29,6 +29,24 @@ let
     ${limaDockerExists} || exit 0
     exec ${limactl} start --tty=false docker
   '';
+
+  # 標準のタイル機能のショートカットは Fn(地球儀キー)を使うが、Advantage360 では Fn がファームウェアに取られるので、
+  # 「ウインドウ」→「移動とサイズ変更」のメニューに Control+Option+矢印(Windows の Win+矢印と同じ配置)を割り当てる。
+  # メニュー名はアプリの言語ごとに違うので日本語と英語の両方。Nix の文字列には ESC や矢印キーの文字を書けないので JSON から作る
+  char = code: builtins.fromJSON ''"\u${code}"'';
+  menuPath = items: lib.concatMapStrings (i: char "001b" + i) items;
+  ctrlOpt = "^~";
+  tileKeys = {
+    left   = { ja = "左";               en = "Left";                    key = ctrlOpt + char "F702"; };
+    right  = { ja = "右";               en = "Right";                   key = ctrlOpt + char "F703"; };
+    fill   = { ja = "画面全体に表示";   en = "Fill";                    key = ctrlOpt + char "F700"; };
+    back   = { ja = "前のサイズに戻す"; en = "Return to Previous Size"; key = ctrlOpt + char "F701"; };
+    center = { ja = "中央に配置";       en = "Center";                  key = ctrlOpt + "c"; };
+  };
+  tileKeyEquivalents = lib.foldl' (acc: t: acc // {
+    ${menuPath [ "ウインドウ" "移動とサイズ変更" t.ja ]} = t.key;
+    ${menuPath [ "Window" "Move & Resize" t.en ]} = t.key;
+  }) { } (lib.attrValues tileKeys);
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -145,6 +163,7 @@ in
       disable-shadow = true;
     };
     CustomUserPreferences = {
+      NSGlobalDomain.NSUserKeyEquivalents = tileKeyEquivalents;
       # ネットワークドライブと USB に .DS_Store を作らない
       "com.apple.desktopservices" = {
         DSDontWriteNetworkStores = true;
