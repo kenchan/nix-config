@@ -93,10 +93,12 @@ gh auth login --hostname github.com --git-protocol https --web     # アカウ�
 
 ### Herdr
 - Herdr.app を起動すると herdr-core のインストールを案内される(`~/.local/bin/herdr-core` と `hc`)
-- `~/.config/herdr-core/config.toml`(Nix の fish のパスなので Mac 専用。dotfiles には入れない):
-  ```toml
-  shell = ["/run/current-system/sw/bin/fish"]
-  ```
+- ログインシェルが fish なので、シェルの設定は要らない
+
+### ログインシェル
+switch のときに fish(`/run/current-system/sw/bin/fish`)にする。Ghostty、ターミナル.app、Herdr はこれで fish で開く。
+Nix が壊れて fish が無くなると、ターミナルがすぐ閉じる(Mac の起動や GUI のログインには影響しない)。そのときは
+「システム設定」→「ユーザとグループ」→ 自分を右クリック →「詳細オプション」でログインシェルを `/bin/zsh` に戻す。
 
 ### Docker(Lima の rootless Docker)
 Mac 側は Nix の docker CLI(compose / buildx 付き)だけで、dockerd は Lima の VM で rootless で動かす。

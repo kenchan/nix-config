@@ -87,8 +87,8 @@ in
   programs.fish.enable = true;
   environment.shells = [ pkgs.fish ];
 
-  # ログインシェルは zsh のまま。zsh でも mise のツール(node など)を使えるようにする
-  # (fish 側の mise activate は dotfiles の config.fish でやっている)
+  # ログインシェルは fish(下の postActivation で設定)。zsh を使う場面(Claude Code のコマンド実行など)でも
+  # mise のツール(node など)を使えるようにする(fish 側の mise activate は dotfiles の config.fish でやっている)
   programs.zsh.interactiveShellInit = ''
     eval "$(${pkgs.mise}/bin/mise activate zsh)"
   '';
@@ -209,6 +209,12 @@ in
   system.activationScripts.postActivation.text = ''
     # ログイン中の GUI セッションのユーザーとして実行する(Lima の VM や入力ソースの操作に必要)
     as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
+
+    # ログインシェルを fish にする。users.users.<名前>.shell は users.knownUsers で管理するユーザーにしか
+    # 効かず、MDM が作ったアカウントを nix-darwin の管理下に置きたくないので、シェルだけ dscl で変える
+    if [ "$(dscl . -read /Users/${user} UserShell | awk '{print $2}')" != /run/current-system/sw/bin/fish ]; then
+      dscl . -create /Users/${user} UserShell /run/current-system/sw/bin/fish
+    fi
 
     # スクリーンショットの保存先
     install -d -o ${user} -g staff ${home}/Pictures/Screenshots
