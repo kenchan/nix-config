@@ -124,16 +124,7 @@ docker run --rm hello-world
 
 ### ウィンドウの配置
 macOS 標準のタイル機能を使う(自動で並べ直すタイル型ウィンドウマネージャーはウィンドウの開閉のたびに配置が動くので使わない)。
-画面の端にドラッグする、緑のボタンにマウスを乗せる、またはキーで寄せる。
-Advantage360 では Fn(地球儀キー)が使えないので、「ウインドウ」→「移動とサイズ変更」のメニューにキーを割り当てている
-(`NSUserKeyEquivalents`。割り当て後に起動したアプリから効く):
-
-| キー | 動き |
-|---|---|
-| Control+Option+← / → | 左半分 / 右半分 |
-| Control+Option+↑ | 画面全体 |
-| Control+Option+↓ | 前のサイズに戻す |
-| Control+Option+C | 中央 |
+画面の端にドラッグする、緑のボタンにマウスを乗せる、または Fn+Control+矢印キーで寄せる。
 
 ### Kensington SlimBlade
 - Kensington のサイトから公式アプリ(Kensington Konnect)を入れる。Homebrew にない
