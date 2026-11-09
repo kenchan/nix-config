@@ -198,6 +198,18 @@ in
     StandardErrorPath = "/tmp/lima-docker.log";
   };
 
+  # ログイン時は macOS が ABC を選ぶので、switch のときと同じく macSKK に揃える。
+  # ログイン直後は macOS 側の入力ソースの復元と競合しうるので少し待ってから実行する
+  launchd.user.agents.input-sources.serviceConfig = {
+    ProgramArguments = [
+      "/bin/sh" "-c"
+      "sleep 5; exec /usr/bin/osascript -l JavaScript ${./input-sources.js} '/Library/Input Methods/macSKK.app'"
+    ];
+    RunAtLoad = true;
+    StandardOutPath = "/tmp/input-sources.log";
+    StandardErrorPath = "/tmp/input-sources.log";
+  };
+
   system.activationScripts.postActivation.text = ''
     # ログイン中の GUI セッションのユーザーとして実行する(Lima の VM や入力ソースの操作に必要)
     as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }

@@ -58,7 +58,7 @@ sudo nix-collect-garbage --delete-older-than 7d
 ## 手作業(Nix で管理していないもの)
 
 ### 入力ソースと macSKK の辞書
-`darwin-rebuild switch` のときに `input-sources.js` が入力ソースを揃える
+`darwin-rebuild switch` のときと、ログイン時(`launchd.user.agents.input-sources`)に `input-sources.js` が入力ソースを揃える
 (`defaults` の `com.apple.HIToolbox` は安定して反映されないので、TIS の API を osascript から呼ぶ)。
 
 - macSKK 本体と **ASCII** モードを有効にし、今の入力ソースが macSKK でなければ ASCII に切り替える
