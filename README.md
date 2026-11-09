@@ -6,10 +6,16 @@ Mac の macOS 設定とアプリを管理する nix-darwin の flake。
 
 ## 適用
 
-設定を変えたら反映する(何も更新しない。cask の追加・削除だけ Homebrew に反映される):
+設定を変えたら反映する(何も更新しない。Homebrew は足した cask を入れるだけ):
 
 ```sh
 sudo darwin-rebuild switch --flake ~/.config/nix-darwin#default
+```
+
+`casks` から消しても、アプリはアンインストールされない(`onActivation.cleanup = "none"`)。消したいときは手で:
+
+```sh
+brew uninstall --cask <名前>
 ```
 
 全部を最新にする:
