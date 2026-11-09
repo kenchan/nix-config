@@ -129,6 +129,7 @@ in
       FXPreferredViewStyle = "Nlsv";   # リスト表示
     };
     NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";    # ダークモード
       KeyRepeat = 2;
       InitialKeyRepeat = 15;
       ApplePressAndHoldEnabled = false;
