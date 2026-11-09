@@ -177,9 +177,15 @@ gh auth login --hostname github.com --git-protocol https --web
 
 ### 1Password
 
-- Install the app yourself. It is not a cask: on Macs where MDM already installed it, Homebrew fails with
-  "already an app" and stops the whole switch, and adopting it (`--adopt`) is blocked by macOS's
-  App Management protection. The `op` CLI comes from `programs._1password`.
+- The app is the `1password` cask and the `op` CLI comes from `programs._1password`. If the app is already
+  installed (e.g. by MDM), adopt it into Homebrew once **before the first switch**; otherwise Homebrew fails
+  with "already an app" and stops the whole switch. Run it from Terminal.app with App Management allowed
+  (System Settings → Privacy & Security → App Management, then reopen Terminal), since macOS blocks
+  other apps from modifying the bundle:
+  ```sh
+  /opt/homebrew/bin/brew install --cask --adopt 1password
+  ```
+  You can turn the permission off again afterwards. 1Password updates itself.
 - In Settings → Developer, turn on **Integrate with 1Password CLI** (`op vault list` should ask for
   Touch ID) and **Use the SSH agent**.
 - `~/.ssh/config`:

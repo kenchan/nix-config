@@ -118,12 +118,13 @@ in
       # switch only applies; apps are upgraded separately with `brew update && brew upgrade`
       autoUpdate = false;
       upgrade = false;
-      cleanup = "none";          # "zap" or "uninstall" would also remove apps not in casks, such as the MDM-installed 1Password
+      cleanup = "none";          # "zap" or "uninstall" would also remove apps installed outside casks, such as ones MDM deploys
       # environment.variables does not reach the brew that switch runs under sudo
       extraEnv.HOMEBREW_NO_ANALYTICS = "1";
     };
     brews = [ ];
     casks = [
+      "1password"                      # where it is already installed (e.g. by MDM), adopt it first: see README
       "brave-browser"
       "chatgpt"                        # includes the Codex desktop app since 2026-07
       "claude-code@latest"             # the CLI, latest channel ("claude-code" is stable)
