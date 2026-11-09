@@ -208,24 +208,31 @@ in
     reattach = true;                   # herdr-core などのセッション内でも Touch ID を使う
   };
 
+  # /nix にある実行ファイルを起動する launchd のジョブは command で書く。/bin/sh 経由で /nix/store が
+  # 見えるまで待ってから起動するので、起動直後に /nix がまだマウントされていなくても launchd に無効にされない
+
   # ログイン時に Docker 用の Lima VM を起動
-  launchd.user.agents.lima-docker.serviceConfig = {
-    ProgramArguments = [ "${limaDockerStart}" ];
-    RunAtLoad = true;
-    StandardOutPath = "/tmp/lima-docker.log";
-    StandardErrorPath = "/tmp/lima-docker.log";
+  launchd.user.agents.lima-docker = {
+    command = "${limaDockerStart}";
+    serviceConfig = {
+      RunAtLoad = true;
+      StandardOutPath = "/tmp/lima-docker.log";
+      StandardErrorPath = "/tmp/lima-docker.log";
+    };
   };
 
   # ログイン時は macOS が ABC を選ぶので、switch のときと同じく macSKK に揃える。
   # ログイン直後は macOS 側の入力ソースの復元と競合しうるので少し待ってから実行する
-  launchd.user.agents.input-sources.serviceConfig = {
-    ProgramArguments = [
-      "/bin/sh" "-c"
-      "sleep 5; exec /usr/bin/osascript -l JavaScript ${./input-sources.js} '/Library/Input Methods/macSKK.app'"
-    ];
-    RunAtLoad = true;
-    StandardOutPath = "/tmp/input-sources.log";
-    StandardErrorPath = "/tmp/input-sources.log";
+  launchd.user.agents.input-sources = {
+    command = "${pkgs.writeShellScript "input-sources-at-login" ''
+      sleep 5
+      exec /usr/bin/osascript -l JavaScript ${./input-sources.js} '/Library/Input Methods/macSKK.app'
+    ''}";
+    serviceConfig = {
+      RunAtLoad = true;
+      StandardOutPath = "/tmp/input-sources.log";
+      StandardErrorPath = "/tmp/input-sources.log";
+    };
   };
 
   # 週 1 回、1 週間より古い世代を消して掃除する。Determinate Nix の自動 GC(既定で有効)はディスクが
