@@ -27,15 +27,15 @@ brew update && brew upgrade                                     # Homebrew の c
 mise upgrade                                                    # mise のツール
 ```
 
-古い世代の掃除は、毎週日曜 12:00 に launchd(`launchd.daemons.nix-gc`)が自動でやる。1 週間より古い世代と、
-使われなくなったパッケージを消す(今の世代は古くても消えない。ログは `/var/log/nix-gc.log`)。すぐやりたいときは手で:
+古い世代の掃除(Determinate Nix なので `nix.gc` は使えない)。1 週間より古い世代と、使われなくなったパッケージを消す
+(今の世代は古くても消えない):
 
 ```sh
 sudo nix-collect-garbage --delete-older-than 7d
 ```
 
 Determinate Nix 自身の自動 GC(既定で有効)はディスクの空きが減ったときに使われていないパッケージを消すだけで、
-古い世代は消さない。
+古い世代は消さない。世代は 1 つあたり小さいので、気が向いたときに手で掃除すれば十分。
 
 ## 新しい Mac のセットアップ
 
