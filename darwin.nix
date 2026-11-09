@@ -228,6 +228,18 @@ in
     StandardErrorPath = "/tmp/input-sources.log";
   };
 
+  # 週 1 回、1 週間より古い世代を消して掃除する。Determinate Nix の自動 GC(既定で有効)はディスクが
+  # 足りなくなったときに使われていないパッケージを消すだけで、古い世代は残り続けるため。
+  # nix.gc は nix.enable = false(Determinate)だと使えないので launchd で動かす
+  launchd.daemons.nix-gc = {
+    command = "/nix/var/nix/profiles/default/bin/nix-collect-garbage --delete-older-than 7d";
+    serviceConfig = {
+      StartCalendarInterval = [ { Weekday = 0; Hour = 12; Minute = 0; } ];   # 日曜 12:00(寝ていたら起きたときに走る)
+      StandardOutPath = "/var/log/nix-gc.log";
+      StandardErrorPath = "/var/log/nix-gc.log";
+    };
+  };
+
   system.activationScripts.postActivation.text = ''
     # ログイン中の GUI セッションのユーザーとして実行する(Lima の VM や入力ソースの操作に必要)
     as_user() { launchctl asuser "$(id -u ${user})" sudo --user=${user} --set-home -- "$@"; }
