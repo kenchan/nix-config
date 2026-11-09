@@ -64,8 +64,10 @@ Determinate Nix 自身の自動 GC(既定で有効)はディスクの空きが�
 `darwin-rebuild switch` のときと、ログイン時(`launchd.user.agents.input-sources`)に `input-sources.js` が入力ソースを揃える
 (`defaults` の `com.apple.HIToolbox` は安定して反映されないので、TIS の API を osascript から呼ぶ)。
 
-- macSKK 本体と **ASCII** モードを有効にし、今の入力ソースが macSKK でなければ ASCII に切り替える
-- ひらがななどのモードは入力ソースとしては有効にしない(macSKK の中で Ctrl+J などで切り替える)
+- macSKK 本体と **ASCII**・**ひらがな** のモードを有効にし、今の入力ソースが macSKK でなければ ASCII に切り替える
+- ひらがなも入力ソースにしておくと、Ctrl+J で入力ソースそのものが切り替わるので、Ghostty が IME の処理だと判断できる
+  (ASCII だけだと Ghostty が Ctrl+J を改行としても送る)。Ghostty 側でも dotfiles の設定で `keybind = ctrl+j=ignore` にしている
+- ターミナル.app はキーを IME より先に処理するので、Ctrl+J でひらがなに入れない。ターミナルは Ghostty を使う
 - ABC は macOS の制約で消せないので残る
 - 手作業: 「キーボードショートカット」→「入力ソース」の「前の入力ソースを選択」をオフにすると ABC に切り替わりにくい
 
