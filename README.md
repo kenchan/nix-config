@@ -98,6 +98,7 @@ docker context use lima-docker
 docker run --rm hello-world
 ```
 
+- `template:docker` は rootless の dockerd(`docker info` の SecurityOptions に `name=rootless`)
 - `--mount-writable` がないとホームが読み取り専用でマウントされ、bind mount に書けない
 - Nix が面倒を見るのは「無ければ作る」まで。VM の設定(CPU やメモリなど)を変えたら作り直す
 - 既存の VM を変えるときは `limactl stop docker && limactl edit --mount-writable docker && limactl start docker`
