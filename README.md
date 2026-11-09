@@ -122,9 +122,9 @@ docker run --rm hello-world
 - 既存の VM を変えるときは `limactl stop docker && limactl edit --mount-writable docker && limactl start docker`
 - VM の起動ログは `/tmp/lima-docker.log`
 
-### Amethyst
-- 初回起動時に「システム設定」→「プライバシーとセキュリティ」→「アクセシビリティ」で許可し、Amethyst を再起動する
-- 自動起動は Nix(`launchd.user.agents.amethyst`)で行うので、Amethyst の「Start at login」はオフのまま
+### ウィンドウの配置
+macOS 標準のタイル機能を使う(自動で並べ直すタイル型ウィンドウマネージャーはウィンドウの開閉のたびに配置が動くので使わない)。
+画面の端にドラッグする、緑のボタンにマウスを乗せる、または Fn+Control+矢印キーで寄せる。
 
 ### Kensington SlimBlade
 - Kensington のサイトから公式アプリ(Kensington Konnect)を入れる。Homebrew にない

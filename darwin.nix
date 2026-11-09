@@ -105,7 +105,6 @@ in
     };
     brews = [ ];
     casks = [
-      "amethyst"
       "chatgpt"                        # Codex のデスクトップアプリも統合済み(2026-07)
       "claude-code@latest"             # CLI。latest チャンネル(stable は "claude-code")
       "ghostty"
@@ -123,7 +122,6 @@ in
       tilesize = 48;
       mru-spaces = false;              # Spaces の並びを自動で入れ替えない
     };
-    spaces.spans-displays = false;     # ディスプレイごとに個別の操作スペース(Amethyst 向け)
     finder = {
       AppleShowAllExtensions = true;
       ShowPathbar = true;
@@ -190,12 +188,6 @@ in
   security.pam.services.sudo_local = {
     touchIdAuth = true;
     reattach = true;                   # herdr-core などのセッション内でも Touch ID を使う
-  };
-
-  # ログイン時に Amethyst を起動
-  launchd.user.agents.amethyst.serviceConfig = {
-    ProgramArguments = [ "/usr/bin/open" "-a" "Amethyst" ];
-    RunAtLoad = true;
   };
 
   # ログイン時に Docker 用の Lima VM を起動
