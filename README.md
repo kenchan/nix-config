@@ -97,10 +97,11 @@ Advanced Options.
 It calls the TIS API from osascript, because writing `com.apple.HIToolbox` with `defaults` does not apply
 reliably.
 
-- It enables macSKK with its **ASCII** and **hiragana** modes, and switches to ASCII unless macSKK is
-  already selected.
-- The hiragana mode is an input source too, so Ctrl+J changes the input source itself and Ghostty can tell
-  the IME handled it. With ASCII alone, Ghostty also sends Ctrl+J as a newline. dotfiles additionally sets
+- It enables macSKK with **all of its input modes** (ASCII, hiragana, katakana, half-width katakana,
+  full-width alphanumeric), and switches to ASCII unless macSKK is already selected.
+- Every mode is an input source, so the mode keys (Ctrl+J, l, q, ...) change the input source itself and
+  Ghostty can tell the IME handled them. A mode that is not an input source changes only inside macSKK,
+  and Ghostty also types the key (a newline for Ctrl+J, "q" for katakana). dotfiles additionally sets
   `keybind = ctrl+j=ignore` for Ghostty.
 - Terminal.app handles keys before the IME, so Ctrl+J cannot switch to hiragana there. Use Ghostty.
 - ABC cannot be removed (macOS requires a keyboard layout).
@@ -198,6 +199,10 @@ gh auth login --hostname github.com --git-protocol https --web
 
 In Keyboard Shortcuts → Input Sources, turn off "Select the previous input source" so you do not end up
 in ABC by accident.
+
+Add macSKK's katakana mode by hand in Keyboard → Input Sources → Edit… → macSKK. It is the one mode that
+`input-sources.js` cannot enable (the API reports success but the mode stays disabled), so switch prints
+a warning until it is added. Without it, pressing q to switch to katakana also types "q" in Ghostty.
 
 ### Herdr
 

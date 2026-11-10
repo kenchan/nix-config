@@ -278,7 +278,7 @@ in
         || echo "warning: failed to create the docker context lima-docker" >&2
     fi
 
-    # Set the input sources to macSKK (ASCII and hiragana modes) and switch away from ABC (input-sources.js).
+    # Set the input sources to macSKK (all of its input modes) and switch away from ABC (input-sources.js).
     # The macSKK cask is installed earlier, in the Homebrew step.
     if [ -d "/Library/Input Methods/macSKK.app" ]; then
       as_user /usr/bin/osascript -l JavaScript ${./input-sources.js} "/Library/Input Methods/macSKK.app" \

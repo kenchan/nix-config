@@ -1,14 +1,15 @@
-// Sets the input sources to macSKK (its ASCII and hiragana modes). Run with `osascript -l JavaScript`.
+// Sets the input sources to macSKK (all of its input modes). Run with `osascript -l JavaScript`.
 // Writing com.apple.HIToolbox with `defaults` does not apply reliably, so this calls the TIS API directly.
-// - Enables macSKK and its ASCII and hiragana modes. With hiragana as an input source too, Ctrl+J changes
-//   the input source itself, so terminals such as Ghostty can tell the IME handled the key
-//   (with ASCII alone the mode changes only inside macSKK, and the terminal also handles Ctrl+J and l/q).
+// - Enables macSKK and every input mode as an input source. Then the mode keys (Ctrl+J, l, q, Ctrl+Q, L)
+//   change the input source itself, so terminals such as Ghostty can tell the IME handled the key.
+//   A mode that is not an input source changes only inside macSKK, and the terminal also types the key
+//   (e.g. "q" when switching to katakana).
 // - Switches to the ASCII mode unless macSKK is already selected.
 // Argument: path to macSKK.app
 ObjC.import("Carbon");
 
 const BUNDLE = "net.mtgto.inputmethod.macSKK";
-const ENABLE = [BUNDLE, BUNDLE + ".ascii", BUNDLE + ".hiragana"];
+const ENABLE = [BUNDLE].concat(["ascii", "hiragana", "katakana", "hankaku", "eisu"].map((m) => BUNDLE + "." + m));
 const SELECT = BUNDLE + ".ascii";
 
 function prop(source, key) {
