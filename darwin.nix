@@ -59,6 +59,9 @@ in
     git
     gh                                 # used by git-credential-gh in dotfiles; from Nix so GUI apps and Claude Code see it too, not just fish
     mise
+    # macOS's own python3 (3.9, from the Command Line Tools) is too old and cannot be replaced.
+    # Tools that pick a Python outside mise, such as the gcloud install script, find this one
+    python3
 
     # CLI tools (language runtimes and dev tools come from mise)
     bat
