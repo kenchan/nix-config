@@ -34,8 +34,9 @@ brew uninstall --cask <name>
 
 `update-world` in dotfiles updates everything. On macOS it runs the steps that ask for Touch ID first:
 
-1. `nix flake update` and `darwin-rebuild switch`
-2. `brew update` and `brew upgrade`
+1. `brew update` and `brew upgrade`
+2. `nix flake update` and `darwin-rebuild switch`, after Homebrew because upgrading macSKK unregisters its
+   input sources and switch registers them again
 3. mise tools, fish plugins, gh extensions, and other tools
 4. `apt-get full-upgrade` in the Lima VM, restarting the VM when a reboot is required
 

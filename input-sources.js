@@ -58,13 +58,14 @@ function run(argv) {
   }
 
   // Enabling can report success without taking effect, so read the state back to check.
-  // An input mode takes a moment to show as enabled, so retry a few times.
+  // An input source takes a while to show as enabled (several seconds right after registering macSKK),
+  // so retry for up to 15 seconds.
   let failed = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     byId = sources();
     failed = ENABLE.filter((id) => !isEnabled(byId[id]));
     if (!failed.length) break;
-    delay(0.3);
+    delay(0.5);
   }
   if (failed.length) return log.concat("warning: could not enable " + failed.join(", ")).join("\n");
 
