@@ -135,6 +135,7 @@ in
     brews = [ ];
     casks = [
       "1password"                      # where it is already installed (e.g. by MDM), adopt it first: see README
+      "amical"
       "brave-browser"
       "chatgpt"                        # includes the Codex desktop app since 2026-07
       "claude-code@latest"             # the CLI, latest channel ("claude-code" is stable)
