@@ -37,21 +37,17 @@ let
   # Control (0x40000) + Option (0x80000); arrow keys also carry the Fn flag (0x800000).
   ctrlOpt = 786432;
   ctrlOptArrow = 9175040;
-  standardHotKey = params: { type = "standard"; inherit params; };
-  symbolicHotKeys = {
-    "240" = standardHotKey [ 65535 123 ctrlOptArrow ];   # left half, ←
-    "241" = standardHotKey [ 65535 124 ctrlOptArrow ];   # right half, →
-    "242" = standardHotKey [ 65535 126 ctrlOptArrow ];   # top half, ↑
-    "243" = standardHotKey [ 65535 125 ctrlOptArrow ];   # bottom half, ↓
-    "237" = standardHotKey [ 102 3 ctrlOpt ];            # fill, F
-    # Dictation: press Command twice. parameters are [modifier, the other bits of the mask].
-    # The second one is ~0x100000 as an unsigned 64-bit value, which doesn't fit a Nix integer, so it's a string
-    "164" = { type = "modifier"; params = [ 1048576 "18446744073708503039" ]; };
+  tileHotKeys = {
+    "240" = [ 65535 123 ctrlOptArrow ];   # left half, ←
+    "241" = [ 65535 124 ctrlOptArrow ];   # right half, →
+    "242" = [ 65535 126 ctrlOptArrow ];   # top half, ↑
+    "243" = [ 65535 125 ctrlOptArrow ];   # bottom half, ↓
+    "237" = [ 102 3 ctrlOpt ];            # fill, F
   };
-  symbolicHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: key: ''
+  tileHotKeyCommands = lib.concatStrings (lib.mapAttrsToList (id: params: ''
     as_user defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add ${id} \
-      '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array>${lib.concatMapStrings (p: "<integer>${toString p}</integer>") key.params}</array><key>type</key><string>${key.type}</string></dict></dict>'
-  '') symbolicHotKeys);
+      '<dict><key>enabled</key><true/><key>value</key><dict><key>parameters</key><array>${lib.concatMapStrings (p: "<integer>${toString p}</integer>") params}</array><key>type</key><string>standard</string></dict></dict>'
+  '') tileHotKeys);
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -187,9 +183,9 @@ in
         TALLogoutSavesState = false;
         LoginwindowLaunchesRelaunchApps = false;
       };
-      # Dictation on (its shortcut is in symbolicHotKeys)
-      "com.apple.assistant.support"."Dictation Enabled" = true;
-      "com.apple.HIToolbox".AppleDictationAutoEnable = 1;
+      # macOS dictation off, so it doesn't fight Amical (the cask above) over the shortcut
+      "com.apple.assistant.support"."Dictation Enabled" = false;
+      "com.apple.HIToolbox".AppleDictationAutoEnable = 0;
       "net.mtgto.inputmethod.macSKK" = {
         showAnnotation = false;        # no system dictionary annotations next to candidates
         kanaRule = "kana-rule.conf";   # installed by preActivation below
@@ -299,9 +295,9 @@ in
         || echo "warning: failed to set the input sources" >&2
     fi
 
-    # Window tiling and dictation shortcuts. symbolichotkeys also holds the input source and Spaces shortcuts, so add only
+    # Window tiling shortcuts. symbolichotkeys also holds the input source and Spaces shortcuts, so add only
     # these entries instead of replacing the whole plist with CustomUserPreferences, then apply without logging out.
-    ${symbolicHotKeyCommands}
+    ${tileHotKeyCommands}
     as_user /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u
 
     # Opt out of Homebrew analytics in its own settings too, for brew runs outside a shell.
