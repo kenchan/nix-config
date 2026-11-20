@@ -98,6 +98,9 @@ in
   # Lets docker find compose and buildx as CLI plugins
   environment.pathsToLink = [ "/libexec/docker" ];
 
+  # Terminal font (Ghostty's font-family in dotfiles)
+  fonts.packages = [ pkgs.udev-gothic-nf ];
+
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "1password-cli" ];
 
