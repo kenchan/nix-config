@@ -55,7 +55,12 @@ let
 in
 {
   nixpkgs.hostPlatform = "aarch64-darwin";
-  nix.enable = false;            # Determinate Nix manages Nix itself
+  # nix-darwin manages Nix itself (the daemon and nix.conf), with upstream Nix from nixpkgs
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.gc = {
+    automatic = true;              # weekly
+    options = "--delete-older-than 7d";
+  };
   system.primaryUser = "kenchan";
   system.stateVersion = 6;
 
