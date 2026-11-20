@@ -99,7 +99,7 @@ in
   environment.pathsToLink = [ "/libexec/docker" ];
 
   # Terminal font (Ghostty's font-family in dotfiles)
-  fonts.packages = [ pkgs.explex-nf ];
+  fonts.packages = [ pkgs.udev-gothic-nf ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
     builtins.elem (lib.getName pkg) [ "1password-cli" ];
