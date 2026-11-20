@@ -6,7 +6,7 @@ Language runtimes and dev tools come from mise, and shell/editor settings from
 
 | What | Managed by |
 |---|---|
-| macOS settings, CLI tools | nix-darwin (this repository), on [Determinate Nix](https://determinate.systems/) |
+| macOS settings, CLI tools, Nix itself | nix-darwin (this repository) |
 | GUI apps | nix-darwin's Homebrew module (casks) |
 | Language runtimes, dev tools | mise (`config/mise/config.toml` in dotfiles) |
 | Shell, editor, git settings | dotfiles (mise `[dotfiles]`) |
@@ -49,23 +49,25 @@ GITHUB_TOKEN=$(gh auth token) mise run update-world
 
 Commit `flake.lock` once the new versions work.
 
-Clean up old generations by hand when you like (`nix.gc` is unavailable with Determinate Nix).
-Determinate's own automatic GC only frees unreferenced paths under disk pressure and keeps generations:
-
-```sh
-sudo nix-collect-garbage --delete-older-than 7d
-```
+Old generations are removed weekly by `nix.gc` (those older than 7 days), so there is nothing to clean up
+by hand.
 
 ## Setting up a new Mac
 
 1. `xcode-select --install`
-2. Determinate Nix: `curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install`
+2. Nix, with the official installer: `curl --proto '=https' --tlsv1.2 -L https://nixos.org/nix/install | sh -s -- --daemon`.
+   After the first switch, nix-darwin manages Nix (the daemon, `nix.conf`, and the Nix version from nixpkgs).
 3. Homebrew: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"`
 4. Clone this repository into the ghq layout with the Command Line Tools' git (ghq is not installed yet):
    ```sh
    git clone https://github.com/kenchan/nix-config.git ~/src/github.com/kenchan/nix-config
    ```
-5. First switch: `sudo nix run nix-darwin/master#darwin-rebuild -- switch --flake ~/src/github.com/kenchan/nix-config#default`
+5. First switch (flakes are not enabled until nix-darwin writes `nix.conf`):
+   ```sh
+   sudo nix --extra-experimental-features 'nix-command flakes' run nix-darwin/master#darwin-rebuild -- switch --flake ~/src/github.com/kenchan/nix-config#default
+   ```
+   - The `/etc` files the Nix installer wrote (`nix/nix.conf`, `zshrc`, `bashrc`, ...) are moved aside to
+     `<name>.before-nix-darwin`.
    - Run it while logged in to the GUI and online; it downloads the Lima VM image, which takes a few minutes.
    - Then switch again with `darwin-rebuild`. macSKK creates its dictionary folder on first launch
      (at the end of the first switch), so the dictionaries are installed by the second one.
