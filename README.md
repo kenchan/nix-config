@@ -209,6 +209,21 @@ a warning until it is added. Without it, pressing q to switch to katakana also t
 
 ### Herdr
 
+Herdr.app is built from a fork of herdr-app ([kenchan/herdr-app](https://github.com/kenchan/herdr-app)),
+not installed from the cask, so it carries changes that are not released yet. `scripts/install-macos` installs it
+into `~/Applications/Herdr.app`. Rust and Zig come from mise; Ghostty inside it needs exactly Zig 0.16,
+which `mise x` installs on first use:
+
+```sh
+ghq get https://github.com/herdrdev/herdr-app.git
+cd ~/src/github.com/herdrdev/herdr-app
+git remote add kenchan https://github.com/kenchan/herdr-app.git
+git fetch kenchan && git switch <branch>
+mise x zig@0.16 -- scripts/install-macos
+```
+
+To update it, rebase the branch onto `origin/master` and run `mise x zig@0.16 -- scripts/install-macos` again, then quit and reopen Herdr.
+
 Herdr.app offers to install herdr-core (`~/.local/bin/herdr-core` and `hc`) on first launch.
 The herdr CLI itself comes from mise.
 
