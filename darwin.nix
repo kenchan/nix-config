@@ -108,7 +108,7 @@ in
   # Lets docker find compose and buildx as CLI plugins
   environment.pathsToLink = [ "/libexec/docker" ];
 
-  # Terminal font (Ghostty's font-family in dotfiles)
+  # Terminal font (Herdr's font in its settings)
   fonts.packages = [ pkgs.udev-gothic-nf ];
 
   nixpkgs.config.allowUnfreePredicate = pkg:
@@ -145,7 +145,6 @@ in
       "brave-browser"
       "chatgpt"                        # includes the Codex desktop app since 2026-07
       "claude-code@latest"             # the CLI, latest channel ("claude-code" is stable)
-      "ghostty"
       "macskk"
       "notion"
     ];

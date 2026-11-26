@@ -86,7 +86,7 @@ by hand.
 
 ### Login shell
 
-fish (`/run/current-system/sw/bin/fish`), so Ghostty, Terminal.app, and Herdr open fish without per-app
+fish (`/run/current-system/sw/bin/fish`), so Terminal.app and Herdr open fish without per-app
 settings. It is set with `dscl` on switch: `users.users.<name>.shell` only applies to users in
 `users.knownUsers`, and the MDM-created account should stay outside nix-darwin.
 
@@ -103,10 +103,10 @@ reliably.
 - It enables macSKK with **all of its input modes** (ASCII, hiragana, katakana, half-width katakana,
   full-width alphanumeric), and switches to ASCII unless macSKK is already selected.
 - Every mode is an input source, so the mode keys (Ctrl+J, l, q, ...) change the input source itself and
-  Ghostty can tell the IME handled them. A mode that is not an input source changes only inside macSKK,
-  and Ghostty also types the key (a newline for Ctrl+J, "q" for katakana). dotfiles additionally sets
-  `keybind = ctrl+j=ignore` for Ghostty.
-- Terminal.app handles keys before the IME, so Ctrl+J cannot switch to hiragana there. Use Ghostty.
+  the terminal can tell the IME handled them. A mode that is not an input source changes only inside macSKK,
+  and the terminal also types the key (a newline for Ctrl+J, "q" for katakana). dotfiles additionally sets
+  `"ctrl-j": "ignore"` in Herdr's `keys.json`.
+- Terminal.app handles keys before the IME, so Ctrl+J cannot switch to hiragana there. Use Herdr.
 - ABC cannot be removed (macOS requires a keyboard layout).
 
 SKK dictionaries (L, jinmei, geo, station, emoji) come from nixpkgs and are copied into macSKK's sandbox
@@ -205,7 +205,7 @@ in ABC by accident.
 
 Add macSKK's katakana mode by hand in Keyboard → Input Sources → Edit… → macSKK. It is the one mode that
 `input-sources.js` cannot enable (the API reports success but the mode stays disabled), so switch prints
-a warning until it is added. Without it, pressing q to switch to katakana also types "q" in Ghostty.
+a warning until it is added. Without it, pressing q to switch to katakana also types "q" in the terminal.
 
 ### Herdr
 

@@ -1,7 +1,7 @@
 // Sets the input sources to macSKK (all of its input modes). Run with `osascript -l JavaScript`.
 // Writing com.apple.HIToolbox with `defaults` does not apply reliably, so this calls the TIS API directly.
 // - Enables macSKK and every input mode as an input source. Then the mode keys (Ctrl+J, l, q, Ctrl+Q, L)
-//   change the input source itself, so terminals such as Ghostty can tell the IME handled the key.
+//   change the input source itself, so terminals can tell the IME handled the key.
 //   A mode that is not an input source changes only inside macSKK, and the terminal also types the key
 //   (e.g. "q" when switching to katakana).
 // - Switches to the ASCII mode unless macSKK is already selected.
