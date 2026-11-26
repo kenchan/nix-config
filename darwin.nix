@@ -68,6 +68,7 @@ in
     git
     gh                                 # used by git-credential-gh in dotfiles; from Nix so GUI apps and Claude Code see it too, not just fish
     mise
+    (callPackage ./herdr-app.nix { })  # Herdr.app from a fork release, in /Applications/Nix Apps (see README)
     # macOS's own python3 (3.9, from the Command Line Tools) is too old and cannot be replaced.
     # Tools that pick a Python outside mise, such as the gcloud install script, find this one
     python3
@@ -138,7 +139,7 @@ in
       extraEnv.HOMEBREW_NO_ANALYTICS = "1";
     };
     brews = [ ];
-    # Herdr is not a cask: it is built from a fork of herdr-app (see README)
+    # Herdr is not a cask: it comes from a fork release (herdr-app.nix)
     casks = [
       "1password"                      # where it is already installed (e.g. by MDM), adopt it first: see README
       "brave-browser"
